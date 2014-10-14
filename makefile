@@ -5,7 +5,7 @@ TARGET = hello.exe
 SRCDIR = ./src/
 INCDIR = ./inc/
 LIBDIR = ./lib/
-OBJDIR = ./bin/debug/
+#OBJDIR = ./bin/debug/
 BINDIR = ./bin/
 
 #OBJS = main.o module.o
@@ -14,7 +14,13 @@ BINDIR = ./bin/
 
 ####################################################################
 
-.PHONY : all show clean
+.PHONY : all show clean release debug
+
+ifeq ($(MAKECMDGOALS), release)
+OBJDIR = ./bin/release/
+else
+OBJDIR = ./bin/debug/
+endif
 
 SRCCCC := $(shell echo $(SRCDIR)*.c)
 SRCCPP := $(shell echo $(SRCDIR)*.cpp)
@@ -47,6 +53,13 @@ OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 all : $(BINDIR)$(TARGET)
 	@echo "All Done!"
 
+release : $(BINDIR)$(TARGET)
+	@echo "Release Done!"
+
+debug : $(BINDIR)$(TARGET)
+	@echo "Debug Done!"
+
+
 $(BINDIR)$(TARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
 	$(CCC) -g -I$(INCDIR) -o $@ $^
@@ -62,13 +75,15 @@ $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 show:
 	@echo 'SRCCCC = '$(SRCCCC)
 	@echo 'SRCCPP = '$(SRCCPP)
+	@echo 'OBJDIR = '$(OBJDIR)
 	@echo 'OBJS =   '$(OBJS)
 	@echo 'CCC =    '$(CCC)
 	@echo 'CC =     '$(CC)
 	@echo 'CXX =    '$(CXX)
 	@echo 'SRCEXT = '$(SRCEXT)
-
+	@echo 'RM =     '$(RM)
 
 clean:
-	rm -f $(OBJS)
-	rm -f $(BINDIR)$(TARGET)
+	$(RM) ./bin/debug/*.o ./bin/debug/*.opp
+	$(RM) ./bin/release/*.o ./bin/release/*.opp
+	$(RM) $(BINDIR)$(TARGET)
