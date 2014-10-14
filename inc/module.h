@@ -1,2 +1,2 @@
-#include <stdio.h>
-void sample_func();
+//#include <stdio.h>
+extern "C" void sample_func();

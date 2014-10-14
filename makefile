@@ -14,19 +14,21 @@ BINDIR = ./bin/
 
 ####################################################################
 
+.PHONY : all show clean
+
 SRCCCC := $(shell echo $(SRCDIR)*.c)
 SRCCPP := $(shell echo $(SRCDIR)*.cpp)
 
 ifeq ($(SRCCCC), $(SRCDIR)*.c)
 SRCCCC = 
 else
-SRCEXT = .c
+SRCEXT := .c
 endif
 
 ifeq ($(SRCCPP), $(SRCDIR)*.cpp)
 SRCCPP = 
 else
-SRCEXT = .cpp
+SRCEXT := .cpp
 endif
 
 ifeq ($(SRCEXT), .cpp)
@@ -35,28 +37,38 @@ else
 CCC = $(CC)
 endif
 
-OBJS := $(SRCCCC) $(SRCCPP)
+OBJS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
+OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 
-OBJSS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(OBJS))
+#OBJS := $(SRCCCC) $(SRCCPP)
+
+#OBJSS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(OBJS))
 
 all : $(BINDIR)$(TARGET)
 	@echo "All Done!"
 
-$(BINDIR)$(TARGET) : $(OBJSS)
+$(BINDIR)$(TARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
-	gcc -g -I$(INCDIR) -o $@ $^
+	$(CCC) -g -I$(INCDIR) -o $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
-	gcc -g -I$(INCDIR) -o $@ -c $<
+	$(CC) -g -I$(INCDIR) -o $@ -c $<
 
-clean:
+$(OBJDIR)%.opp : $(SRCDIR)%.cpp
+	@echo "Compiling $<...."
+	$(CXX) -g -I$(INCDIR) -o $@ -c $<
+
+show:
 	@echo 'SRCCCC = '$(SRCCCC)
 	@echo 'SRCCPP = '$(SRCCPP)
-	@echo 'SRCEXT = '$(SRCEXT)
+	@echo 'OBJS =   '$(OBJS)
 	@echo 'CCC =    '$(CCC)
-	rm -f $(OBJSS)
+	@echo 'CC =     '$(CC)
+	@echo 'CXX =    '$(CXX)
+	@echo 'SRCEXT = '$(SRCEXT)
+
+
+clean:
+	rm -f $(OBJS)
 	rm -f $(BINDIR)$(TARGET)
-
-
-
