@@ -5,13 +5,13 @@ TARGET = hello.exe
 SRCDIR = ./src/
 INCDIR = ./inc/
 LIBDIR = ./lib/
-#OBJDIR = ./bin/debug/
 BINDIR = ./bin/
 
 #VPATH = src inc
 
 #Designate Library files here.
 #Common:  -lpthread -ldl 
+
 LIBS +=
 
 RCPPFLAGS =
