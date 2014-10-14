@@ -12,14 +12,28 @@ BINDIR = ./bin/
 
 #VPATH = src inc
 
+RCPPFLAGS =
+DCPPFLAGS =
+RCXXFLAGS = -O2 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
+DCXXFLAGS = -g3 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
+RCFLAGS = -O2 -Wall -Wextra -Wfloat-equal -std=c99
+DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
+
+
 ####################################################################
 
 .PHONY : all show clean release debug
 
 ifeq ($(MAKECMDGOALS), release)
 OBJDIR = ./bin/release/
+CPPFLAGS += $(RCPPFLAGS)
+CXXFLAGS += $(RCXXFLAGS)
+CFLAGS += $(RCFLAGS)
 else
 OBJDIR = ./bin/debug/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
 endif
 
 SRCCCC := $(shell echo $(SRCDIR)*.c)
@@ -39,8 +53,10 @@ endif
 
 ifeq ($(SRCEXT), .cpp)
 CCC = $(CXX)
+CCCFLAGS = $(CPPFLAGS) $(CXXFLAGS)
 else
 CCC = $(CC)
+CCCFLAGS = $(CPPFLAGS) $(CFLAGS)
 endif
 
 OBJS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
@@ -51,7 +67,7 @@ OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 #OBJSS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(OBJS))
 
 all : $(BINDIR)$(TARGET)
-	@echo "All Done!"
+	@echo "All Done (default debug)!"
 
 release : $(BINDIR)$(TARGET)
 	@echo "Release Done!"
@@ -62,15 +78,15 @@ debug : $(BINDIR)$(TARGET)
 
 $(BINDIR)$(TARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
-	$(CCC) -g -I$(INCDIR) -o $@ $^
+	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) -o $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
-	$(CC) -g -I$(INCDIR) -o $@ -c $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ -c $<
 
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 	@echo "Compiling $<...."
-	$(CXX) -g -I$(INCDIR) -o $@ -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ -c $<
 
 show:
 	@echo 'SRCCCC = '$(SRCCCC)
@@ -82,6 +98,10 @@ show:
 	@echo 'CXX =    '$(CXX)
 	@echo 'SRCEXT = '$(SRCEXT)
 	@echo 'RM =     '$(RM)
+	@echo 'CPPFLAGS='$(CPPFLAGS)
+	@echo 'CXXFLAGS='$(CXXFLAGS)
+	@echo 'CFLAGS = '$(CFLAGS)
+	@echo 'CCCFLAGS='$(CCCFLAGS)
 
 clean:
 	$(RM) ./bin/debug/*.o ./bin/debug/*.opp
