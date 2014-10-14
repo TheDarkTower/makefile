@@ -8,9 +8,11 @@ LIBDIR = ./lib/
 #OBJDIR = ./bin/debug/
 BINDIR = ./bin/
 
-#OBJS = main.o module.o
-
 #VPATH = src inc
+
+#Designate Library files here.
+#Common:  -lpthread -ldl 
+LIBS +=
 
 RCPPFLAGS =
 DCPPFLAGS =
@@ -78,20 +80,21 @@ debug : $(BINDIR)$(TARGET)
 
 $(BINDIR)$(TARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
-	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) -o $@ $^
+	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
-	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ -c $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 	@echo "Compiling $<...."
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) -o $@ -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
 show:
 	@echo 'SRCCCC = '$(SRCCCC)
 	@echo 'SRCCPP = '$(SRCCPP)
 	@echo 'OBJDIR = '$(OBJDIR)
+	@echo 'LIBS =   '$(LIBS)
 	@echo 'OBJS =   '$(OBJS)
 	@echo 'CCC =    '$(CCC)
 	@echo 'CC =     '$(CC)
