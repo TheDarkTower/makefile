@@ -21,6 +21,9 @@ DCXXFLAGS = -g3 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 RCFLAGS = -O2 -Wall -Wextra -Wfloat-equal -std=c99
 DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
 
+# Evluate for later inclusion
+#LDFLAGS =
+#LDLIBS =
 
 ####################################################################
 

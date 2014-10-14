@@ -46,6 +46,10 @@ standard project FLAGS specified in makefile.
 11. Added LIBS and included in CC, CXX, CCC compiler options.  This must be set
 based on project.  I did not include anything by default.
 
+12. Considering LDLIBS and LDFLAGS.
+
+13. Branched for Automatic Prerequisites of .h/.hpp in object builds.
+
 Still working on/learning a number of pieces - this is far from complete.  I'm
 testing and learning as I go.  Ultimately I want a makefile that will address
 the vast majority of my projects on multiple platforms.
