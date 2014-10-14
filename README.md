@@ -9,13 +9,13 @@ What it does so far:
 
 1. Uses following project tree:
 
-./<project>
-  ./src
-  ./inc
-  ./lib
-  ./bin
-    ./debug
-    ./release
+/<project>
+  /src
+  /inc
+  /lib
+  /bin
+    /debug
+    /release
 
 2. Uses MAKECMDGOALS to set OBJDIR for release and debug but still builds the
 binary in ./bin (for now).  I have not updated the flags for gcc or g++ yet
