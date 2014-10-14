@@ -3,13 +3,13 @@ makefile
 
 Working on general makefile for GNU Linux
 
-Practicing with git amd make to generate a dynamic makefile for local projects.
+Practicing with git and make to generate a dynamic makefile for local projects.
 
 What it does so far:
 
 1. Uses following project tree:
 
-/<project>
+/[project]
   /src
   /inc
   /lib
@@ -39,6 +39,9 @@ so that the correct compilre can be chosen based on source extenstion.
 9. Changed to $(RM) for platform independance.  Still working on other platform
 dependency issues; but, I just use linux for now.
 
+10. Added support for CPPFLAGS CXXFLAGS CFLAGS with debug/release logic.  You
+can still pass values to these FLAGS via make and they will be combined with
+standard project FLAGS specified in makefile.
 
 Still working on/learning a number of pieces - this is far from complete.  I'm
 testing and learning as I go.  Ultimately I want a makefile that will address
