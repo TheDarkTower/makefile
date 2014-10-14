@@ -18,19 +18,19 @@ What it does so far:
     /release
 
 2. Uses MAKECMDGOALS to set OBJDIR for release and debug but still builds the
-binary in ./bin (for now).  I have not updated the flags for gcc or g++ yet
-but it's on the list.  This is just to separte the builds in future and allow
-for debug and optimizaton defaults/targets.
+binary in ./bin (for now).  This is just to separte the builds in future and
+allow for debug and optimizaton defaults/targets.
 
-3. Automatically loads and seperates object files in OBJS for .c and .cpp.
+3. Automatically loads and seperates object files from SRCDIR in OBJS for .c and .cpp.
 
 4. Uses the proper compiler (CC, or CXX) for .c and .cpp object builds.
 
-5. If mixing .c and .cpp object files, the target build uses CXX.  if not,
-the target build uses proper compiler based on source files.
+5. If mixing .c and .cpp object files, the target.exe build uses CXX.  if not,
+the target.exe build uses proper compiler based on source files.
 
 6. .c and .cpp object files are designated with .o (for .c) and .opp (for .cpp)
-so that the correct compilre can be chosen based on source extenstion.
+so that the correct compilre can be chosen via target based on source
+extenstion.
 
 7. Designated all .PHONY targets.
 
