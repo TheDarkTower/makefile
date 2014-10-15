@@ -1,21 +1,18 @@
 makefile
 ========
 
-Working on general makefile for GNU Linux
-
-Practicing with git and make to generate a dynamic makefile for local projects.
+Working on general makefile for GNU gcc/g++ on Linux.  I couldn't find anything that would allow me to build a release and debug version in seperate directories and I wanted soemthing that would allow for seperate procesing of .c and .cpp files without using default gcc passthrough.  When the makefile is completed, I plan to write a couple of BASH scripts that I can use to setup new projects from the command line based on custom templates.  Finally, I hope to be able to autogenerate a .pro file so that the projects can also be opened in Qt.
 
 What it does so far:
 
 1. Uses following project tree:
 
-/[project]
-  /src
-  /inc
-  /lib
-  /bin
-    /debug
-    /release
+project/src
+project/inc
+project/lib
+project/bin
+project/bin/release
+project/bin/debug
 
 2. Uses MAKECMDGOALS to set OBJDIR for release and debug but still builds the
 binary in ./bin (for now).  This is just to separte the builds in future and
