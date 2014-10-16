@@ -11,7 +11,6 @@ BINDIR = ./bin/
 
 # Designate Library files here.
 # Common:  -lpthread -ldl 
-
 LIBS +=
 
 RCPPFLAGS =
@@ -72,9 +71,9 @@ OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 SRCDDD := $(patsubst $(SRCDIR)%.c, $(DEPDIR)%.d, $(SRCCCC))
 SRCDPP := $(patsubst $(SRCDIR)%.cpp, $(DEPDIR)%.dpp, $(SRCCPP))
 
-#OBJS := $(SRCCCC) $(SRCCPP)
 
-#OBJSS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(OBJS))
+############### BEGIN RECIPES ###############
+
 
 all : $(BINDIR)$(TARGET)
 	@echo "All Done (default debug)!"
@@ -146,14 +145,12 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
 # g	repeat the substitution until EOL
 # '	close quote for suptitution pattern
 # <	input file redirection; input file created by CC to sed
-# $(DEPDIR)	designate the release or debug ./dep/ directory
 # $@	use target filename
-# $$$$	append PID twice $$ = PID = Process ID of calling process
+# .$$$$	append PID; $$$$ resolves to $$ in make; PID = Process ID of calling process
 # >	out file redirection; output results to target file $@
 # $(RM)	make rm/del replacement; resolves to rm -f on linux to remove temp file
-# $(DEPDIR)	designate the relase or debug ./dep/ directory
 # $@	target file name
-# $$$$	append PID twice $$ = PID = Process ID of calling process
+# .$$$$	append PID; $$$$ resolves to $$ in make; PID = Process ID of calling process
 
 
 
