@@ -1,0 +1,1 @@
+main.opp bin/debug/dep/main.dpp : src/main.cpp /usr/include/stdc-predef.h inc/module.h
