@@ -7,7 +7,7 @@ I couldn't find anything that would allow me to build a release and debug versio
 
 Current Features/Functionality:
 
-1. The makefile uses the following directory tree - all folders must currently exist:
+The makefile uses the following directory tree - all folders must currently exist:
 
 * - /dir-to-project/
 * -- /bin/
@@ -19,18 +19,18 @@ Current Features/Functionality:
 * -- /lib/
 * -- /src/
 
-2. Uses MAKECMDGOALS logic to set proper build directories.
+1. Uses MAKECMDGOALS logic to set proper build directories.
 
-3. Automatically loads and seperates source files by extension (.c & .cpp) from ./src/ for proper processing via (CC) or (CXX).
+2. Automatically loads and seperates source files by extension (.c & .cpp) from ./src/ for proper processing via (CC) or (CXX).
 
-4. Uses the proper compiler and options/flags (CC, or CXX) based on source extension .c and .cpp to build object files.
+3. Uses the proper compiler and options/flags (CC, or CXX) based on source extension .c and .cpp to build object files.
 
-5. If mixing .c and .cpp source/object files, the final target uses CXX for proper linking.  If not mixed, the final target uses the appropriate compiler/linger (CC or CXX) based on source file extensions.
+4. If mixing .c and .cpp source/object files, the final target uses CXX for proper linking.  If not mixed, the final target uses the appropriate compiler/linger (CC or CXX) based on source file extensions.
 
-6. .c and .cpp object files are designated with .o (for .c) and .opp (for .cpp) so that the correct compiler can be chosen by targeting the source and object extenstions.
+5. .c and .cpp object files are designated with .o (for .c) and .opp (for .cpp) so that the correct compiler can be chosen by targeting the source and object extenstions.
 
-7. Provides a 'show' target for debuging make variables.
+6. Provides a 'show' target for debuging make variables.
 
-8. Uses $(RM) for future platform independence.
+7. Uses $(RM) for future platform independence.
 
-9. Supports CPPFLAGS, CXXFLAGS, and CFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
+8. Supports CPPFLAGS, CXXFLAGS, and CFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
