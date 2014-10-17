@@ -10,7 +10,8 @@ BINDIR = ./bin/
 #VPATH = src inc
 
 # Designate Library files here.
-# Common:  -lpthread -ldl 
+# Common:  -lpthread -ldl
+
 LIBS +=
 
 RCPPFLAGS =
@@ -20,11 +21,11 @@ DCXXFLAGS = -g3 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 RCFLAGS = -O2 -Wall -Wextra -Wfloat-equal -std=c99
 DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
 
-# Evluate for later inclusion
+# Evluate for later inclusion - commented out to allow defaults to pass through
 #LDFLAGS =
 #LDLIBS =
 
-####################################################################
+######################## DO NOT EDIT BELOW THIS LINE ############################
 
 .PHONY : all show clean release debug
 
@@ -78,29 +79,41 @@ SRCDPP := $(patsubst $(SRCDIR)%.cpp, $(DEPDIR)%.dpp, $(SRCCPP))
 all : $(BINDIR)$(TARGET)
 	@echo "All Done (default debug)!"
 
+
 release : $(BINDIR)$(TARGET)
 	@echo "Release Done!"
+
 
 debug : $(BINDIR)$(TARGET)
 	@echo "Debug Done!"
 
-# include all .d and .dpp makefiles from BINDIR/DEPDIR
+
+# include all .d and .dpp makefiles from BINDIR/DEPDIR if not clean or show
+
+ifneq ($(MAKECMDGOALS), show)
+ifneq ($(MAKECMDGOALS), clean)
 include $(SRCDDD)
 include $(SRCDPP)
+endif
+endif
+
 
 $(BINDIR)$(TARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
 	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
+
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
 	#include $(SRCDDD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
+
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 	@echo "Compiling $<...."
 	#include $(SRCDPP)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
+
 
 # Build all .d make files from SRCCCC
 $(DEPDIR)%.d : $(SRCDIR)%.c
@@ -109,6 +122,7 @@ $(DEPDIR)%.d : $(SRCDIR)%.c
          $(CC) -M -I$(INCDIR) $(CPPFLAGS) $< > $@.$$$$; \
          sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
          $(RM) $@.$$$$
+
 
 # Build all .dpp make files from SRCCPP
 $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
@@ -153,7 +167,6 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
 # .$$$$	append PID; $$$$ resolves to $$ in make; PID = Process ID of calling process
 
 
-
 show:
 	@echo 'SRCCCC = '$(SRCCCC)
 	@echo 'SRCCPP = '$(SRCCPP)
@@ -175,6 +188,7 @@ show:
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "SRCDDD = "$(SRCDDD)
 	@echo "SRCDPP = "$(SRCDPP)
+
 
 clean:
 	$(RM) ./bin/debug/*.o ./bin/debug/*.opp
