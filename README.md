@@ -34,3 +34,10 @@ The makefile uses the following directory tree - all folders must currently exis
 7. Uses $(RM) for future platform independence.
 
 8. Supports CPPFLAGS, CXXFLAGS, and CFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
+
+9. Targets Include:
+* all (default debug)
+* debug
+* release
+* clean (removes all object files and dependency makefiles)
+* mkdirs (creats required directory structure from .
