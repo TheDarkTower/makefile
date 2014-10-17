@@ -27,7 +27,7 @@ DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
 
 ######################## DO NOT EDIT BELOW THIS LINE ############################
 
-.PHONY : all show clean release debug
+.PHONY : all show clean release debug mkdirs
 
 ifeq ($(MAKECMDGOALS), release)
 OBJDIR = ./bin/release/
@@ -196,3 +196,11 @@ clean:
 	$(RM) ./bin/debug/dep/*.d ./bin/debug/dep/*.dpp
 	$(RM) ./bin/release/dep/*.d ./bin/release/dep/*.dpp
 	$(RM) $(BINDIR)$(TARGET)
+
+mkdirs:
+	mkdir -p src
+	mkdir -p inc
+	mkdir -p lib
+	mkdir -p bin/debug/dep
+	mkdir -p bin/release/dep
+
