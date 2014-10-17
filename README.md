@@ -7,17 +7,17 @@ I couldn't find anything that would allow me to build a release and debug versio
 
 Current Features/Functionality:
 
-1. The makefile uses the following directory tree:
+1. The makefile uses the following directory tree - all folders must currently exist:
 
-/dir/to/project/
-|~bin/        - Target binary
-| |~debug/    - Debug object files
-| | |~dep     - Debug dependency make files
-| |~release/  - Release object files
-| | |~dep     - Release dependency make files
-|~inc/        - Include directory for header files
-|~lib/        - Library directory for local libraries
-|~src/        - Source file for all .c and .cpp files
+* - /dir-to-project/
+* -- /bin/
+* --- /debug/
+* ---- /dep/
+* --- /release/
+* ---- /dep/
+* -- /inc/
+* -- /lib/
+* -- /src/
 
 2. Uses MAKECMDGOALS logic to set proper build directories.
 
