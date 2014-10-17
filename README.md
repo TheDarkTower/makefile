@@ -3,7 +3,7 @@ makefile
 
 Dynamic makefile for GNU gcc/g++ on Linux.
 
-I couldn't find anything that would allow me to build a release and debug version in seperate directories and I wanted soemthing that would allow for seperate procesing of .c and .cpp files without using default gcc passthrough.  I'm now writing a BASH script that can be used to setup new projects from the command line based on custom templates and this makefile.  Ultimately, this script will autogenerate a .pro file so that the projects can also be opened in Qt Creator for IDE editing.
+I couldn't find anything that would allow me to build a release and debug version in seperate directories and I wanted soemthing that would allow for seperate processing of .c and .cpp files without using default gcc passthrough.  I'm now writing a BASH script that can be used to setup new projects from the command line based on custom templates and this makefile.  Ultimately, this script will autogenerate a .pro file so that the projects can also be opened in Qt Creator for IDE editing.
 
 Current Features/Functionality:
 
