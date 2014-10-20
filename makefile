@@ -1,6 +1,6 @@
 # makefile ksc
 
-TARGET = hello.exe
+TARGET = hello
 
 SRCDIR = ./src/
 INCDIR = ./inc/
@@ -20,8 +20,6 @@ RCXXFLAGS = -O2 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 DCXXFLAGS = -g3 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 RCFLAGS = -O2 -Wall -Wextra -Wfloat-equal -std=c99
 DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
-
-# Evluate for later inclusion - commented out to allow defaults to pass through
 #LDFLAGS =
 #LDLIBS =
 
@@ -29,18 +27,61 @@ DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
 
 .PHONY : all show clean release debug mkdirs
 
-ifeq ($(MAKECMDGOALS), release)
-OBJDIR = ./bin/release/
-DEPDIR = ./bin/release/dep/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += $(RCXXFLAGS)
-CFLAGS += $(RCFLAGS)
-else
+
+ifeq ($(MAKECMDGOALS), all)
+LDTARGET = $(TARGET:=.exe)
 OBJDIR = ./bin/debug/
 DEPDIR = ./bin/debug/dep/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS), release)
+LDTARGET = $(TARGET:=.exe)
+OBJDIR = ./bin/release/
+DEPDIR = ./bin/release/dep/
+CPPFLAGS += $(RCPPFLAGS)
+CXXFLAGS += $(RCXXFLAGS)
+CFLAGS += $(RCFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS), debug)
+LDTARGET = $(TARGET:=.exe)
+OBJDIR = ./bin/debug/
+DEPDIR = ./bin/debug/dep/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS), clean)
+LDTARGET = $(TARGET:=.*)
+endif
+
+ifeq ($(MAKECMDGOALS), show)
+LDTARGET = $(TARGET:=.exe)
+endif
+
+ifneq ($(MAKECMDGOALS), all)
+ifneq ($(MAKECMDGOALS), debug)
+ifneq ($(MAKECMDGOALS), release)
+ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(MAKECMDGOALS), show)
+ifneq ($(MAKECMDGOALS), mkdirs)
+ifneq ($(MAKECMDGOALS), show)
+LDTARGET = $(TARGET:=.exe)
+OBJDIR = ./bin/debug/
+DEPDIR = ./bin/debug/dep/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
+endif
+endif
+endif
+endif
+endif
+endif
 endif
 
 SRCCCC := $(shell echo $(SRCDIR)*.c)
@@ -76,15 +117,15 @@ SRCDPP := $(patsubst $(SRCDIR)%.cpp, $(DEPDIR)%.dpp, $(SRCCPP))
 ############### BEGIN RECIPES ###############
 
 
-all : $(BINDIR)$(TARGET)
+all : $(BINDIR)$(LDTARGET)
 	@echo "All Done (default debug)!"
 
 
-release : $(BINDIR)$(TARGET)
+release : $(BINDIR)$(LDTARGET)
 	@echo "Release Done!"
 
 
-debug : $(BINDIR)$(TARGET)
+debug : $(BINDIR)$(LDTARGET)
 	@echo "Debug Done!"
 
 
@@ -92,13 +133,15 @@ debug : $(BINDIR)$(TARGET)
 
 ifneq ($(MAKECMDGOALS), show)
 ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(MAKECMDGOALS), mkdirs)
 include $(SRCDDD)
 include $(SRCDPP)
 endif
 endif
+endif
 
 
-$(BINDIR)$(TARGET) : $(OBJS)
+$(BINDIR)$(LDTARGET) : $(OBJS)
 	@echo "Compiling $@ from $^..."
 	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
 
@@ -188,6 +231,7 @@ show:
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "SRCDDD = "$(SRCDDD)
 	@echo "SRCDPP = "$(SRCDPP)
+	@echo "LDTARGET="$(LDTARGET)
 
 
 clean:
@@ -195,12 +239,12 @@ clean:
 	$(RM) ./bin/release/*.o ./bin/release/*.opp
 	$(RM) ./bin/debug/dep/*.d ./bin/debug/dep/*.dpp
 	$(RM) ./bin/release/dep/*.d ./bin/release/dep/*.dpp
-	$(RM) $(BINDIR)$(TARGET)
+	$(RM) $(BINDIR)$(LDTARGET)
 
 mkdirs:
-	mkdir -p src
-	mkdir -p inc
-	mkdir -p lib
-	mkdir -p bin/debug/dep
-	mkdir -p bin/release/dep
+	mkdir -p $(SRCDIR)
+	mkdir -p $(INCDIR)
+	mkdir -p $(LIBDIR)
+	mkdir -p $(BINDIR)debug/dep
+	mkdir -p $(BINDIR)release/dep
 
