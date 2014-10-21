@@ -20,27 +20,44 @@ RCXXFLAGS = -O2 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 DCXXFLAGS = -g3 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
 RCFLAGS = -O2 -Wall -Wextra -Wfloat-equal -std=c99
 DCFLAGS = -g3 -Wall -Wextra -Wfloat-equal -std=c99
-#LDFLAGS =
-#LDLIBS =
+LDFLAGS +=
+LDLIBS += $(LIBS)
 
 ######################## DO NOT EDIT BELOW THIS LINE ############################
 
-.PHONY : all show clean release debug mkdirs
+.PHONY : all_debug all_release show clean release debug mkdirs
 
-
-ifeq ($(MAKECMDGOALS), all)
+ifeq ($(MAKECMDGOALS), all_debug)
 LDTARGET = $(TARGET:=.exe)
-OBJDIR = ./bin/debug/
-DEPDIR = ./bin/debug/dep/
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 endif
 
+ifeq ($(MAKECMDGOALS), all_release)
+LDTARGET = $(TARGET:=.exe)
+TARDIR = $(BINDIR)release/
+OBJDIR = $(BINDIR)release/obj/
+DEPDIR = $(BINDIR)release/dep/
+ASMDIR = $(BINDIR)release/asm/
+CPPDIR = $(BINDIR)release/cpp/
+CPPFLAGS += $(RCPPFLAGS)
+CXXFLAGS += $(RCXXFLAGS)
+CFLAGS += $(RCFLAGS)
+endif
+
 ifeq ($(MAKECMDGOALS), release)
 LDTARGET = $(TARGET:=.exe)
-OBJDIR = ./bin/release/
-DEPDIR = ./bin/release/dep/
+TARDIR = $(BINDIR)release/
+OBJDIR = $(BINDIR)release/obj/
+DEPDIR = $(BINDIR)release/dep/
+ASMDIR = $(BINDIR)release/asm/
+CPPDIR = $(BINDIR)release/cpp/
 CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
@@ -48,8 +65,11 @@ endif
 
 ifeq ($(MAKECMDGOALS), debug)
 LDTARGET = $(TARGET:=.exe)
-OBJDIR = ./bin/debug/
-DEPDIR = ./bin/debug/dep/
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
@@ -61,9 +81,18 @@ endif
 
 ifeq ($(MAKECMDGOALS), show)
 LDTARGET = $(TARGET:=.exe)
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
 endif
 
-ifneq ($(MAKECMDGOALS), all)
+ifneq ($(MAKECMDGOALS), all_debug)
+ifneq ($(MAKECMDGOALS), all_release)
 ifneq ($(MAKECMDGOALS), debug)
 ifneq ($(MAKECMDGOALS), release)
 ifneq ($(MAKECMDGOALS), clean)
@@ -71,11 +100,15 @@ ifneq ($(MAKECMDGOALS), show)
 ifneq ($(MAKECMDGOALS), mkdirs)
 ifneq ($(MAKECMDGOALS), show)
 LDTARGET = $(TARGET:=.exe)
-OBJDIR = ./bin/debug/
-DEPDIR = ./bin/debug/dep/
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
+endif
 endif
 endif
 endif
@@ -113,19 +146,28 @@ OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 SRCDDD := $(patsubst $(SRCDIR)%.c, $(DEPDIR)%.d, $(SRCCCC))
 SRCDPP := $(patsubst $(SRCDIR)%.cpp, $(DEPDIR)%.dpp, $(SRCCPP))
 
+SRCSCC := $(patsubst $(SRCDIR)%.c, $(ASMDIR)%.s, $(SRCCCC))
+SRCSPP := $(patsubst $(SRCDIR)%.cpp, $(ASMDIR)%.spp, $(SRCCPP))
+
+SRCICC := $(patsubst $(SRCDIR)%.c, $(CPPDIR)%.i, $(SRCCCC))
+SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
+
 
 ############### BEGIN RECIPES ###############
 
 
-all : $(BINDIR)$(LDTARGET)
-	@echo "All Done (default debug)!"
+all_debug : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+	@echo "All Done - DEBUG!"
+
+all_release : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+	@echo "All Done - RELEASE!"
 
 
-release : $(BINDIR)$(LDTARGET)
+release : $(TARDIR)$(LDTARGET)
 	@echo "Release Done!"
 
 
-debug : $(BINDIR)$(LDTARGET)
+debug : $(TARDIR)$(LDTARGET)
 	@echo "Debug Done!"
 
 
@@ -140,22 +182,43 @@ endif
 endif
 endif
 
-
-$(BINDIR)$(LDTARGET) : $(OBJS)
-	@echo "Compiling $@ from $^..."
-	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
-
+$(TARDIR)$(LDTARGET) : $(OBJS)
+	@echo "Compiling $@ from $^...."
+	$(CCC) $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
+#	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
 	#include $(SRCDDD)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ -c $<
+#	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
 
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 	@echo "Compiling $<...."
 	#include $(SRCDPP)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -o $@ -c $<
+#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
+
+$(ASMDIR)%.s : $(SRCDIR)%.c
+	@echo "Compiling to Assembly $<...."
+	#include $(SRCDDD)
+	$(CC) -S $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ $<
+
+$(ASMDIR)%.spp : $(SRCDIR)%.cpp
+	@echo "Compiling to Assembly $<...."
+	#include $(SRCDPP)
+	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -o $@ $<
+
+$(CPPDIR)%.i : $(SRCDIR)%.c
+	@echo "Pre-Processing $<...."
+	#include $(SRCDDD)
+	cpp $(CPPFLAGS) -I$(INCDIR) $< > $@
+
+$(CPPDIR)%.ipp : $(SRCDIR)%.cpp
+	@echo "Pre-Processing $<...."
+	#include $(SRCDPP)
+	cpp $(CPPFLAGS) -I$(INCDIR) $< > $@
 
 
 # Build all .d make files from SRCCCC
@@ -213,9 +276,12 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
 show:
 	@echo 'SRCCCC = '$(SRCCCC)
 	@echo 'SRCCPP = '$(SRCCPP)
-	@echo 'OBJDIR = '$(OBJDIR)
+	@echo "TARDIR = "$(TARDIR)
+	@echo "OBJDIR = "$(OBJDIR)
 	@echo "BINDIR = "$(BINDIR)
 	@echo "DEPDIR = "$(DEPDIR)
+	@echo "ASMDIR = "$(ASMDIR)
+	@echo "CPPDIR = "$(CPPDIR)
 	@echo 'LIBS =   '$(LIBS)
 	@echo 'OBJS =   '$(OBJS)
 	@echo 'CCC =    '$(CCC)
@@ -231,20 +297,36 @@ show:
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "SRCDDD = "$(SRCDDD)
 	@echo "SRCDPP = "$(SRCDPP)
+	@echo "SRCSCC = "$(SRCSCC)
+	@echo "SRCSPP = "$(SRCSPP)
+	@echo "SRCICC = "$(SRCICC)
+	@echo "SRCIPP = "$(SRCIPP)
 	@echo "LDTARGET="$(LDTARGET)
 
 
 clean:
-	$(RM) ./bin/debug/*.o ./bin/debug/*.opp
-	$(RM) ./bin/release/*.o ./bin/release/*.opp
-	$(RM) ./bin/debug/dep/*.d ./bin/debug/dep/*.dpp
-	$(RM) ./bin/release/dep/*.d ./bin/release/dep/*.dpp
-	$(RM) $(BINDIR)$(LDTARGET)
+	$(RM) $(BINDIR)debug/obj/*.o $(BINDIR)debug/obj/*.opp
+	$(RM) $(BINDIR)release/obj/*.o $(BINDIR)release/obj/*.opp
+	$(RM) $(BINDIR)debug/dep/*.d $(BINDIR)debug/dep/*.dpp
+	$(RM) $(BINDIR)release/dep/*.d $(BINDIR)release/dep/*.dpp
+	$(RM) $(BINDIR)debug/asm/*.s $(BINDIR)debug/asm/*.spp
+	$(RM) $(BINDIR)release/asm/*.s $(BINDIR)release/asm/*.spp
+	$(RM) $(BINDIR)debug/cpp/*.i $(BINDIR)debug/cpp/*.ipp
+	$(RM) $(BINDIR)release/cpp/*.i $(BINDIR)release/cpp/*.ipp
+	$(RM) $(BINDIR)debug/$(LDTARGET)
+	$(RM) $(BINDIR)release/$(LDTARGET)
+
 
 mkdirs:
 	mkdir -p $(SRCDIR)
 	mkdir -p $(INCDIR)
 	mkdir -p $(LIBDIR)
+	mkdir -p $(BINDIR)debug/obj
 	mkdir -p $(BINDIR)debug/dep
+	mkdir -p $(BINDIR)debug/asm
+	mkdir -p $(BINDIR)debug/cpp
+	mkdir -p $(BINDIR)release/obj
 	mkdir -p $(BINDIR)release/dep
+	mkdir -p $(BINDIR)release/asm
+	mkdir -p $(BINDIR)release/cpp
 
