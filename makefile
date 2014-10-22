@@ -25,9 +25,10 @@ LDLIBS += $(LIBS)
 
 ######################## DO NOT EDIT BELOW THIS LINE ############################
 
-.PHONY : all_debug all_release show clean release debug mkdirs
+.PHONY : all debug release dfull rfull shared dshared rshared static dstatic rstatic
+.PHONY : show clean mkdirs
 
-ifeq ($(MAKECMDGOALS), all_debug)
+ifeq ($(MAKECMDGOALS), all)
 LDTARGET = $(TARGET:=.exe)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
@@ -39,16 +40,16 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 endif
 
-ifeq ($(MAKECMDGOALS), all_release)
+ifeq ($(MAKECMDGOALS), debug)
 LDTARGET = $(TARGET:=.exe)
-TARDIR = $(BINDIR)release/
-OBJDIR = $(BINDIR)release/obj/
-DEPDIR = $(BINDIR)release/dep/
-ASMDIR = $(BINDIR)release/asm/
-CPPDIR = $(BINDIR)release/cpp/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += $(RCXXFLAGS)
-CFLAGS += $(RCFLAGS)
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
 endif
 
 ifeq ($(MAKECMDGOALS), release)
@@ -63,7 +64,7 @@ CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
 endif
 
-ifeq ($(MAKECMDGOALS), debug)
+ifeq ($(MAKECMDGOALS), dfull)
 LDTARGET = $(TARGET:=.exe)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
@@ -73,6 +74,18 @@ CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
+endif
+
+ifeq ($(MAKECMDGOALS), rfull)
+LDTARGET = $(TARGET:=.exe)
+TARDIR = $(BINDIR)release/
+OBJDIR = $(BINDIR)release/obj/
+DEPDIR = $(BINDIR)release/dep/
+ASMDIR = $(BINDIR)release/asm/
+CPPDIR = $(BINDIR)release/cpp/
+CPPFLAGS += $(RCPPFLAGS)
+CXXFLAGS += $(RCXXFLAGS)
+CFLAGS += $(RCFLAGS)
 endif
 
 ifeq ($(MAKECMDGOALS), clean)
@@ -91,8 +104,10 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 endif
 
-ifneq ($(MAKECMDGOALS), all_debug)
-ifneq ($(MAKECMDGOALS), all_release)
+# Build DEFAULT RULE
+ifneq ($(MAKECMDGOALS), all)
+ifneq ($(MAKECMDGOALS), dfull)
+ifneq ($(MAKECMDGOALS), rfull)
 ifneq ($(MAKECMDGOALS), debug)
 ifneq ($(MAKECMDGOALS), release)
 ifneq ($(MAKECMDGOALS), clean)
@@ -108,6 +123,7 @@ CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
+endif
 endif
 endif
 endif
@@ -156,22 +172,23 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 ############### BEGIN RECIPES ###############
 
 
-all_debug : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
-	@echo "All Done - DEBUG!"
-
-all_release : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
-	@echo "All Done - RELEASE!"
-
-
-release : $(TARDIR)$(LDTARGET)
-	@echo "Release Done!"
-
+all : $(TARDIR)$(LDTARGET) $(SRCSCC)
+	@echo "all Done - all/DEFAULT DEBUG!"
 
 debug : $(TARDIR)$(LDTARGET)
-	@echo "Debug Done!"
+	@echo "debug Done!"
+
+release : $(TARDIR)$(LDTARGET)
+	@echo "release Done!"
+
+dfull : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+	@echo "dfull Done - DEBUG!"
+
+rfull : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+	@echo "rfull Done - RELEASE!"
 
 
-# include all .d and .dpp makefiles from BINDIR/DEPDIR if not clean or show
+# include all .d and .dpp makefiles from BINDIR/DEPDIR if not show/clean/mkdirs
 
 ifneq ($(MAKECMDGOALS), show)
 ifneq ($(MAKECMDGOALS), clean)
