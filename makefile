@@ -288,7 +288,7 @@ $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 
 $(TARDIR)$(basename $(LDTARGET)).so : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^) -o $@ $^
+	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
 
 $(TARDIR)$(basename $(LDTARGET)).ar : $(OBJS)
 	@echo "Compiling $@ from $^...."
