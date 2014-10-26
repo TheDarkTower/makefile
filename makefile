@@ -173,41 +173,6 @@ LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
 endif
 
-# Build DEFAULT RULE
-ifneq ($(MAKECMDGOALS), all)
-ifneq ($(MAKECMDGOALS), dfull)
-ifneq ($(MAKECMDGOALS), rfull)
-ifneq ($(MAKECMDGOALS), debug)
-ifneq ($(MAKECMDGOALS), release)
-ifneq ($(MAKECMDGOALS), shared)
-ifneq ($(MAKECMDGOALS), dshared)
-ifneq ($(MAKECMDGOALS), rshared)
-ifneq ($(MAKECMDGOALS), clean)
-ifneq ($(MAKECMDGOALS), mkdirs)
-ifneq ($(MAKECMDGOALS), show)
-LDTARGET = $(TARGET:=.exe)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-endif
-
 
 TESTST = $(DEFBLDS) $(DEFCMDS)
 
@@ -222,8 +187,7 @@ TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
 TESTIF = FOUND $(TESTST)
 endif
 
-# Determine if default build (no target passed to make) excluding whitespaces
-# Replace multiple ifneq for default build - DELETE OLD LOGIC after commit
+# Determine if DEFAULT build (no target passed to make) excluding whitespaces
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
 DEFAULTBLD = true
 TARDIR = $(BINDIR)debug/
