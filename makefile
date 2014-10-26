@@ -9,12 +9,15 @@ BINDIR = ./bin/
 
 #VPATH = src inc
 
+# Run 'make show' with all targets for debugging variables
+SHOW = show
+
 # Designate Project Specific Libraries here.
 # Common:  -lpthread -ldl
 
 LIBS =
 
-# gcc/ld -shared -fPIC AND ar rcsv added automatically when choosing shared/static builds
+# ld -shared, cc -fPIC, AND ar rcsv added for shared/static targets
 # ***  REMINDER:  add support for -soname  ***
 # the below flags are appended to any flags passed at the command line
 
@@ -205,14 +208,24 @@ endif
 endif
 endif
 
-ifeq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS)))
-TESTIF = true $(DEFBLDS) $(DEFCMDS)
+
+TESTST = $(DEFBLDS) $(DEFCMDS)
+
+
+# Test routine for findsting logic - delete after commit
+# Test ifeq empty/whitespace
+ifeq ($(strip $(findstring $(MAKECMDGOALS), $(TESTST))),)
+TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
+TESTIF = NOT FOUND $(TESTST)
 else
-TESTIF = false $(DEFBLDS) $(DEFCMDS)
+TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
+TESTIF = FOUND $(TESTST)
 endif
 
-# Replace multiple ifneq for default build
-ifneq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS)))
+# Determine if default build (no target passed to make) excluding whitespaces
+# Replace multiple ifneq for default build - DELETE OLD LOGIC after commit
+ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
+DEFAULTBLD = true
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -223,6 +236,8 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
+else
+DEFAULTBLD = false
 endif
 
 
@@ -266,28 +281,28 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 ############### BEGIN RECIPES ###############
 
 
-all : $(TARDIR)$(LDTARGET)
+all : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "all Done - all/DEFAULT DEBUG!"
 
-debug : $(TARDIR)$(LDTARGET)
+debug : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "debug Done!"
 
-release : $(TARDIR)$(LDTARGET)
+release : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "release Done!"
 
-dfull : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+dfull : $(SHOW) $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
 	@echo "dfull Done - DEBUG!"
 
-rfull : $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+rfull : $(SHOW) $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
 	@echo "rfull Done - RELEASE!"
 
-shared : $(TARDIR)$(LDTARGET)
+shared : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "all Done - all/DEFAULT DEBUG!"
 
-dshared : $(TARDIR)$(LDTARGET)
+dshared : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "all Done - all/DEFAULT DEBUG!"
 
-rshared : $(TARDIR)$(LDTARGET)
+rshared : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "all Done - all/DEFAULT DEBUG!"
 
 
@@ -430,16 +445,22 @@ show:
 	@echo "SRCICC = "$(SRCICC)
 	@echo "SRCIPP = "$(SRCIPP)
 	@echo "LDTARGET="$(LDTARGET)
+	@echo "SHOW    ="$(SHOW)
 	@echo "=========================================================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
 	@echo "words SRCDIR =  "$(words $(wildcard $(SRCDIR)*.c))
 	@echo "words CPPFLAGS ="$(words $(CPPFLAGS))
 	@echo "basename LDTARGET = "$(basename $(LDTARGET))
 	@echo "suffix LDTARGET = "$(suffix $(LDTARGET))
+	@echo "MAKECMDGOALS = "$(MAKECMDGOALS)
+	@echo "DEFAULTBLD = "$(DEFAULTBLD)
+	@echo "TESTST = "$(TESTST)
 	@echo "TESTIF = "$(TESTIF)
+	@echo "TESTIFEQ = "$(TESTIFEQ)
+	@echo "=========================================================="
 
 
-clean:
+clean: $(SHOW)
 	$(RM) $(BINDIR)debug/obj/*.o $(BINDIR)debug/obj/*.opp
 	$(RM) $(BINDIR)release/obj/*.o $(BINDIR)release/obj/*.opp
 	$(RM) $(BINDIR)debug/dep/*.d $(BINDIR)debug/dep/*.dpp
@@ -452,7 +473,7 @@ clean:
 	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so $(BINDIR)release/*.ar
 
 
-mkdirs:
+mkdirs: $(SHOW)
 	mkdir -p $(SRCDIR)
 	mkdir -p $(INCDIR)
 	mkdir -p $(LIBDIR)
