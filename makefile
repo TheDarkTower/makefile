@@ -155,6 +155,48 @@ LDFLAGS += $(RLDFLAGS)
 LDLIBS += $(RLDLIBS)
 endif
 
+ifeq ($(MAKECMDGOALS), static)
+LDTARGET = lib$(TARGET:=.a)
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += -fPIC $(DCXXFLAGS)
+CFLAGS += -fPIC $(DCFLAGS)
+LDFLAGS += -shared -fPIC $(DLDFLAGS)
+LDLIBS += $(DLDLIBS)
+endif
+
+ifeq ($(MAKECMDGOALS), dstatic)
+LDTARGET = lib$(TARGET:=.a)
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += -fPIC $(DCXXFLAGS)
+CFLAGS += -fPIC $(DCFLAGS)
+LDFLAGS += $(DLDFLAGS)
+LDLIBS += $(DLDLIBS)
+endif
+
+ifeq ($(MAKECMDGOALS), rstatic)
+LDTARGET = lib$(TARGET:=.a)
+TARDIR = $(BINDIR)release/
+OBJDIR = $(BINDIR)release/obj/
+DEPDIR = $(BINDIR)release/dep/
+ASMDIR = $(BINDIR)release/asm/
+CPPDIR = $(BINDIR)release/cpp/
+CPPFLAGS += $(RCPPFLAGS)
+CXXFLAGS += -fPIC $(RCXXFLAGS)
+CFLAGS += -fPIC $(RCFLAGS)
+LDFLAGS += $(RLDFLAGS)
+LDLIBS += $(RLDLIBS)
+endif
+
 ifeq ($(MAKECMDGOALS), clean)
 LDTARGET = $(TARGET:=.*)
 endif
@@ -290,7 +332,7 @@ $(TARDIR)$(basename $(LDTARGET)).so : $(OBJS)
 	@echo "Compiling $@ from $^...."
 	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
 
-$(TARDIR)$(basename $(LDTARGET)).ar : $(OBJS)
+$(TARDIR)$(basename $(LDTARGET)).a : $(OBJS)
 	@echo "Compiling $@ from $^...."
 	$(AR) rcsv $@ $^
 
