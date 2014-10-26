@@ -14,6 +14,10 @@ BINDIR = ./bin/
 
 LIBS =
 
+# gcc/ld -shared -fPIC AND ar rcsv added automatically when choosing shared/static builds
+# ***  REMINDER:  add support for -soname  ***
+# the below flags are appended to any flags passed at the command line
+
 RCPPFLAGS =
 DCPPFLAGS =
 RCXXFLAGS = -O2 -Wall -Wextra -Wfloat-equal -Weffc++ -std=c++11
@@ -29,8 +33,12 @@ DLDLIBS = $(LIBS)
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
 
-.PHONY : all debug release dfull rfull shared dshared rshared static dstatic rstatic
-.PHONY : show clean mkdirs
+DEFBLDS = all debug release dfull rfull shared dshared rshared static dstatic rstatic
+DEFCMDS = show clean mkdirs
+
+.PHONY : $(DEFBLDS)
+.PHONY : $(DEFCMDS)
+
 
 ifeq ($(MAKECMDGOALS), all)
 LDTARGET = $(TARGET:=.exe)
@@ -126,7 +134,7 @@ CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += -fPIC $(DCFLAGS)
-LDFLAGS += -shared -fPIC $(DLDFLAGS)
+LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
 endif
 
@@ -140,7 +148,7 @@ CPPDIR = $(BINDIR)release/cpp/
 CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += -fPIC $(RCXXFLAGS)
 CFLAGS += -fPIC $(RCFLAGS)
-LDFLAGS += -shared -fPIC $(RLDFLAGS)
+LDFLAGS += $(RLDFLAGS)
 LDLIBS += $(RLDLIBS)
 endif
 
@@ -195,6 +203,26 @@ endif
 endif
 endif
 endif
+endif
+
+ifeq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS)))
+TESTIF = true $(DEFBLDS) $(DEFCMDS)
+else
+TESTIF = false $(DEFBLDS) $(DEFCMDS)
+endif
+
+# Replace multiple ifneq for default build
+ifneq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS)))
+TARDIR = $(BINDIR)debug/
+OBJDIR = $(BINDIR)debug/obj/
+DEPDIR = $(BINDIR)debug/dep/
+ASMDIR = $(BINDIR)debug/asm/
+CPPDIR = $(BINDIR)debug/cpp/
+CPPFLAGS += $(DCPPFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
+LDFLAGS += $(DLDFLAGS)
+LDLIBS += $(DLDLIBS)
 endif
 
 
@@ -281,13 +309,11 @@ $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 
 $(TARDIR)$(basename $(LDTARGET)).so : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
-#	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
+	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^) -o $@ $^
 
 $(TARDIR)$(basename $(LDTARGET)).ar : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
-#	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
+	$(AR) rcsv $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
@@ -410,6 +436,7 @@ show:
 	@echo "words CPPFLAGS ="$(words $(CPPFLAGS))
 	@echo "basename LDTARGET = "$(basename $(LDTARGET))
 	@echo "suffix LDTARGET = "$(suffix $(LDTARGET))
+	@echo "TESTIF = "$(TESTIF)
 
 
 clean:
