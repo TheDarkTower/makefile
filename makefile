@@ -36,6 +36,15 @@ DLDLIBS = $(LIBS)
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
 
+#SRCCCC := $(shell echo $(SRCDIR)*.c)
+#SRCCPP := $(shell echo $(SRCDIR)*.cpp)
+
+SRCCCC := $(wildcard $(SRCDIR)*.c)
+SRCCPP := $(wildcard $(SRCDIR)*.cpp)
+LIBSHAR := $(wildcard $(LIBDIR)*.so)
+LIBSTAT := $(wildcard $(LIBDIR)*.a)
+
+
 DEFBLDS = all debug release dfull rfull shared dshared rshared static dstatic rstatic
 DEFCMDS = show clean mkdirs
 
@@ -123,8 +132,12 @@ CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += -fPIC $(DCFLAGS)
-LDFLAGS += -shared -fPIC $(DLDFLAGS)
+LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), dshared)
@@ -164,8 +177,8 @@ ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
-CFLAGS += -fPIC $(DCFLAGS)
-LDFLAGS += -shared -fPIC $(DLDFLAGS)
+CFLAGS += $(DCFLAGS)
+LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
 endif
 
@@ -177,8 +190,8 @@ DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
 CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += -fPIC $(DCXXFLAGS)
-CFLAGS += -fPIC $(DCFLAGS)
+CXXFLAGS += $(DCXXFLAGS)
+CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS)
 endif
@@ -191,8 +204,8 @@ DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
 CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += -fPIC $(RCXXFLAGS)
-CFLAGS += -fPIC $(RCFLAGS)
+CXXFLAGS += $(RCXXFLAGS)
+CFLAGS += $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
 LDLIBS += $(RLDLIBS)
 endif
@@ -232,6 +245,7 @@ endif
 # Determine if DEFAULT build (no target passed to make) excluding whitespaces
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
 DEFAULTBLD = true
+LDTARGET = $(TARGET:=.exe)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -247,29 +261,17 @@ DEFAULTBLD = false
 endif
 
 
-SRCCCC := $(shell echo $(SRCDIR)*.c)
-SRCCPP := $(shell echo $(SRCDIR)*.cpp)
-
-
-ifeq ($(SRCCCC), $(SRCDIR)*.c)
-SRCCCC = 
-else
-SRCEXT := .c
-endif
-
-ifeq ($(SRCCPP), $(SRCDIR)*.cpp)
-SRCCPP = 
-else
+# TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP
+ifneq (0, $(words $(SRCCPP)))
 SRCEXT := .cpp
-endif
-
-ifeq ($(SRCEXT), .cpp)
 CCC = $(CXX)
 CCCFLAGS = $(CPPFLAGS) $(CXXFLAGS)
 else
+SRCEXT := .c
 CCC = $(CC)
 CCCFLAGS = $(CPPFLAGS) $(CFLAGS)
 endif
+
 
 OBJS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
 OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
@@ -296,20 +298,29 @@ debug : $(SHOW) $(TARDIR)$(LDTARGET)
 release : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "release Done!"
 
-dfull : $(SHOW) $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
-	@echo "dfull Done - DEBUG!"
+dfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+	@echo "dfull Done!"
 
-rfull : $(SHOW) $(TARDIR)$(LDTARGET) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
-	@echo "rfull Done - RELEASE!"
+rfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+	@echo "rfull Done!"
 
 shared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo "all Done - all/DEFAULT DEBUG!"
+	@echo "shared Done!"
 
 dshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo "all Done - all/DEFAULT DEBUG!"
+	@echo "dshared Done!"
 
 rshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo "all Done - all/DEFAULT DEBUG!"
+	@echo "rshared Done!"
+
+static : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo "static Done!"
+
+dstatic : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo "dstatic Done!"
+
+rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo "rstatic Done!"
 
 
 # include all .d and .dpp makefiles from BINDIR/DEPDIR if not show/clean/mkdirs
@@ -475,8 +486,8 @@ clean: $(SHOW)
 	$(RM) $(BINDIR)release/asm/*.s $(BINDIR)release/asm/*.spp
 	$(RM) $(BINDIR)debug/cpp/*.i $(BINDIR)debug/cpp/*.ipp
 	$(RM) $(BINDIR)release/cpp/*.i $(BINDIR)release/cpp/*.ipp
-	$(RM) $(BINDIR)debug/*.exe $(BINDIR)debug/*.so $(BINDIR)debug/*.ar
-	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so $(BINDIR)release/*.ar
+	$(RM) $(BINDIR)debug/*.exe $(BINDIR)debug/*.so $(BINDIR)debug/*.a
+	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so $(BINDIR)release/*.a
 
 
 mkdirs: $(SHOW)
