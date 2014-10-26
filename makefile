@@ -2,6 +2,10 @@
 
 TARGET = hello
 
+SOMAJ = .1
+SOMIN = .0
+SOREL = .0
+
 SRCDIR = ./src/
 INCDIR = ./inc/
 LIBDIR = ./lib/
@@ -17,8 +21,7 @@ SHOW = show
 
 LIBS =
 
-# ld -shared, cc -fPIC, AND ar rcsv added for shared/static targets
-# ***  REMINDER:  add support for -soname  ***
+# ld -shared, Wl,-soname=, cc -fPIC, AND ar rcsv added for shared/static targets
 # the below flags are appended to any flags passed at the command line
 
 RCPPFLAGS =
@@ -35,9 +38,6 @@ DLDLIBS = $(LIBS)
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
-
-#SRCCCC := $(shell echo $(SRCDIR)*.c)
-#SRCCPP := $(shell echo $(SRCDIR)*.cpp)
 
 SRCCCC := $(wildcard $(SRCDIR)*.c)
 SRCCPP := $(wildcard $(SRCDIR)*.cpp)
@@ -63,7 +63,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), debug)
@@ -77,7 +77,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), release)
@@ -91,7 +91,7 @@ CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(RLDLIBS)
+LDLIBS += $(RLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), dfull)
@@ -105,7 +105,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), rfull)
@@ -119,11 +119,12 @@ CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(RLDLIBS)
+LDLIBS += $(RLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), shared)
 LDTARGET = lib$(TARGET:=.so)
+LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -133,7 +134,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += -fPIC $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -142,6 +143,7 @@ endif
 
 ifeq ($(MAKECMDGOALS), dshared)
 LDTARGET = lib$(TARGET:=.so)
+LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -151,11 +153,16 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += -fPIC $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), rshared)
 LDTARGET = lib$(TARGET:=.so)
+LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 TARDIR = $(BINDIR)release/
 OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
@@ -165,7 +172,11 @@ CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += -fPIC $(RCXXFLAGS)
 CFLAGS += -fPIC $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(RLDLIBS)
+LDLIBS += $(RLDLIBS) $(LIBSHAR) $(LIBSTAT)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), static)
@@ -179,7 +190,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), dstatic)
@@ -193,7 +204,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), rstatic)
@@ -207,7 +218,7 @@ CPPFLAGS += $(RCPPFLAGS)
 CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(RLDLIBS)
+LDLIBS += $(RLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 ifeq ($(MAKECMDGOALS), clean)
@@ -225,7 +236,7 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
 
@@ -337,11 +348,11 @@ endif
 $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 	@echo "Compiling $@ from $^...."
 	$(CCC) $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
-#	$(CCC) $(CCCFLAS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ $^
 
 $(TARDIR)$(basename $(LDTARGET)).so : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
+	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) \
+	 -Wl,-soname=$(LDSONAME) -o $@$(SOMAJ)$(SOMIN)$(SOREL) $^
 
 $(TARDIR)$(basename $(LDTARGET)).a : $(OBJS)
 	@echo "Compiling $@ from $^...."
@@ -351,14 +362,12 @@ $(OBJDIR)%.o : $(SRCDIR)%.c
 	@echo "Compiling $<...."
 	#include $(SRCDDD)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ -c $<
-#	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
 
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
 	@echo "Compiling $<...."
 	#include $(SRCDPP)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -o $@ -c $<
-#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -L$(LIBDIR) $(LIBS) -o $@ -c $<
 
 $(ASMDIR)%.s : $(SRCDIR)%.c
 	@echo "Compiling to Assembly $<...."
@@ -486,8 +495,8 @@ clean: $(SHOW)
 	$(RM) $(BINDIR)release/asm/*.s $(BINDIR)release/asm/*.spp
 	$(RM) $(BINDIR)debug/cpp/*.i $(BINDIR)debug/cpp/*.ipp
 	$(RM) $(BINDIR)release/cpp/*.i $(BINDIR)release/cpp/*.ipp
-	$(RM) $(BINDIR)debug/*.exe $(BINDIR)debug/*.so $(BINDIR)debug/*.a
-	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so $(BINDIR)release/*.a
+	$(RM) $(BINDIR)debug/*.exe $(BINDIR)debug/*.so* $(BINDIR)debug/*.a*
+	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so* $(BINDIR)release/*.a*
 
 
 mkdirs: $(SHOW)
