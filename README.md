@@ -4,7 +4,7 @@ by: Kenneth Cascio
 
 Dynamic makefile for GNU gcc/g++ on Linux.
 
-Automatically loads project source files and builds release and debug versions of .exe, .so, and .a targets.  As detailed below under Defined Targets, you can also build the intermediate steps for the project to evaluate the pre-processour and/or assembly outputs.
+Automatically loads project source files and builds release and debug versions of .exe, .so, and .a targets.  As detailed below under Defined Targets, you can also build the intermediate steps for the project to evaluate the pre-processor and/or assembly outputs.
 
 Allows for simultaneous debug and release builds in the ./bin/debug/ and ./bin/release/ directoires.
 
