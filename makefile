@@ -38,19 +38,36 @@ DLDLIBS = $(LIBS)
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
+# Load *.c, *.cpp, *.so, and *.a files for processing
 
 SRCCCC := $(wildcard $(SRCDIR)*.c)
 SRCCPP := $(wildcard $(SRCDIR)*.cpp)
-LIBSHAR := $(wildcard $(LIBDIR)*.so)
-LIBSTAT := $(wildcard $(LIBDIR)*.a)
+SRCSHAR := $(wildcard $(LIBDIR)*.so*)
+SRCSTAT := $(wildcard $(LIBDIR)*.a*)
 
+# Resolve SRCSHAR & SRCSTAT results to -lmylib FLAGS for CCC/LD
+# Embeded basename calls strip .so/.a and any MAJ MIN REL suffixes
+# Resulting LIBSHAR and LIBSTAT are appended to LDLIBS
+# Any .so or .a will automatically be added to LDLIBS by default
 
+# TESTING ONLY - remove # to overide wildcard pulls and test LIBSHAR & LIBSTAT values
+#SRCSHAR := $(LIBDIR)libmysharedlib1.so.1.0.1 $(LIBDIR)libmysharedlib2.so.1.0.2
+#SRCSTAT := $(LIBDIR)libmystaticlib1.a.1.0.1 $(LIBDIR)libmystaticlib2.a.1.0.2
+
+SRCTEMP := $(basename $(basename $(basename $(basename $(SRCSHAR)))))
+LIBSHAR := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
+
+SRCTEMP := $(basename $(basename $(basename $(basename $(SRCSTAT)))))
+LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
+
+# DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build logic
 DEFBLDS = all debug release dfull rfull shared dshared rshared static dstatic rstatic
 DEFCMDS = show clean mkdirs
 
 .PHONY : $(DEFBLDS)
 .PHONY : $(DEFCMDS)
 
+# Set directories and flags based on MAKECMDGOALS
 
 ifeq ($(MAKECMDGOALS), all)
 LDTARGET = $(TARGET:=.exe)
@@ -191,6 +208,10 @@ CXXFLAGS += -fPIC $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), dstatic)
@@ -205,6 +226,10 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), rstatic)
@@ -219,6 +244,10 @@ CXXFLAGS += $(RCXXFLAGS)
 CFLAGS += $(RCFLAGS)
 LDFLAGS += $(RLDFLAGS)
 LDLIBS += $(RLDLIBS) $(LIBSHAR) $(LIBSTAT)
+TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
+TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
+SRCCCC := $(TMPCCC)
+SRCCPP := $(TMPCPP)
 endif
 
 ifeq ($(MAKECMDGOALS), clean)
@@ -243,7 +272,7 @@ endif
 TESTST = $(DEFBLDS) $(DEFCMDS)
 
 
-# Test routine for findsting logic - delete after commit
+# Test routine for findstring logic - delete after commit
 # Test ifeq empty/whitespace
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(TESTST))),)
 TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
@@ -266,13 +295,13 @@ CPPFLAGS += $(DCPPFLAGS)
 CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(DLDLIBS)
+LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 else
 DEFAULTBLD = false
 endif
 
 
-# TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP
+# TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP != ""
 ifneq (0, $(words $(SRCCPP)))
 SRCEXT := .cpp
 CCC = $(CXX)
@@ -336,14 +365,22 @@ rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
 
 # include all .d and .dpp makefiles from BINDIR/DEPDIR if not show/clean/mkdirs
 
-ifneq ($(MAKECMDGOALS), show)
-ifneq ($(MAKECMDGOALS), clean)
-ifneq ($(MAKECMDGOALS), mkdirs)
+#ifneq ($(MAKECMDGOALS), show)
+#ifneq ($(MAKECMDGOALS), clean)
+#ifneq ($(MAKECMDGOALS), mkdirs)
+#include $(SRCDDD)
+#include $(SRCDPP)
+#endif
+#endif
+#endif
+
+
+# Include .d and .dpp makefile dependencies when MAKECMDGOALS != DEFCMDS
+ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFCMDS))),)
 include $(SRCDDD)
 include $(SRCDPP)
 endif
-endif
-endif
+
 
 $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 	@echo "Compiling $@ from $^...."
@@ -471,6 +508,8 @@ show:
 	@echo "SRCICC = "$(SRCICC)
 	@echo "SRCIPP = "$(SRCIPP)
 	@echo "LDTARGET="$(LDTARGET)
+	@echo "LDFLAGS = "$(LDFLAGS)
+	@echo "LDLIBS  = "$(LDLIBS)
 	@echo "SHOW    ="$(SHOW)
 	@echo "=========================================================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
@@ -483,6 +522,10 @@ show:
 	@echo "TESTST = "$(TESTST)
 	@echo "TESTIF = "$(TESTIF)
 	@echo "TESTIFEQ = "$(TESTIFEQ)
+	@echo "SRCSHAR = "$(SRCSHAR)
+	@echo "SRCSTAT = "$(SRCSTAT)
+	@echo "LIBSTAT = "$(LIBSTAT)
+	@echo "LIBSHAR = "$(LIBSHAR)
 	@echo "=========================================================="
 
 
