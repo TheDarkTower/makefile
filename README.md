@@ -1,44 +1,53 @@
-makefile
-========
+makefile Version 2
+by: Kenneth Cascio
+===================
 
 Dynamic makefile for GNU gcc/g++ on Linux.
 
-I couldn't find anything that would allow me to build a release and debug version in seperate directories and I wanted soemthing that would allow for seperate processing of .c and .cpp files without using default gcc passthrough.  I'm now writing a BASH script that can be used to setup new projects from the command line based on custom templates and this makefile.  Ultimately, this script will autogenerate a .pro file so that the projects can also be opened in Qt Creator for IDE editing.
+Automatically loads project source files and builds release and debug versions of .exe, .so, and .a targets.  As detailed below under Defined Targets, you can also build the intermediate steps for the project to evaluate the pre-processour and/or assembly outputs.
 
-Current Features/Functionality:
+Allows for simultaneous debug and release builds in the ./bin/debug/ and ./bin/release/ directoires.
 
-The makefile uses the following directory tree - all folders must currently exist:
+NOTE:  When building shared libraries (.so via shared, dshared, or rshared) you may have to perform a 'make clean' to remove any object files created by previous calls to a non-shared target.  All shared library files must be built with -fPIC for Position Independent Code.  Those object files could be up to date via all debendencies; but, built w/out -fPIC.
 
-* - /dir-to-project/
-* -- /bin/
-* --- /debug/
-* ---- /dep/
-* --- /release/
-* ---- /dep/
-* -- /inc/
-* -- /lib/
-* -- /src/
+The repository contains a simple mixed .c/.cpp 'hello world' project for testing purposes.  All you need is the actual makefile.
 
-1. Uses MAKECMDGOALS logic to set proper build directories.
+To create a new/empty project, copy 'makefile' to the project directory and run 'make mkdirs' to create the project directories.  Add .c/.cpp files to src; .h/.hpp files to inc; .so/.a files to lib; and make will auto-load all dependencies to build the selected target.
 
-2. Automatically loads and seperates source files by extension (.c & .cpp) from ./src/ for proper processing via (CC) or (CXX).
+Do not put an extension in the TARGET string - the extension is added based on the selected target.
 
-3. Uses the proper compiler and options/flags (CC, or CXX) based on source extension .c and .cpp to build object files.
+If building shared libraries, edit SOMAJ, SOMIN, and SOREL (major, minor, and release versions) - the default is '.1.0.1'.  The target will be built with the '.so.MAJ.MIN.REL' suffix and the 'lib' prefix.  Additionally, the 'soname' will be created with the 'lib' prefix and a '.so.MAJ' suffix.
+
+Defined Targets:
+* all (default build - same as debug for .exe target)
+* debug (.exe target with debug flags/directories)
+* release (.exe target with release flags/directories)
+* dfull (.exe target with debug flags/directories building all incremental steps (e.g .d, .i, .s, .o, .exe))
+* rfull (.exe target with release flags/directories building all incremental steps (e.g .d, .i, .s, .o, .exe))
+* shared (.so target with debug flags/directories and .MAJ.MIN.REL suffix, soname.so.MAJ, -shared -fPIC)
+* dshared (.so target with debug flags/directories and .MAJ.MIN.REL suffix, soname.so.MAJ, -shared -fPIC)
+* rshared (.so target with release flags/directories and .MAJ.MIN.REL suffix, soname.so.MAJ, -shared -fPIC)
+* static (.a target with debug flags/directories using $(AR) w/ rcsv flags set)
+* dstatic (.a target with debug flags/directories using $(AR) w/ rcsv flags set)
+* rstatic (.a target with release flags/directories using $(AR) w/ rcsv flags set)
+* show (display variables for debugging makefile. Un-comment SHOW to force 'show' dependency for all targets)
+* clean (remove all objects created with makefile - no source files are touched)
+* makdirs (build default directory structure from project root (makefile home))
+
+1. Uses MAKECMDGOALS logic to set proper build directories & flags for debug/release.
+
+2. Automatically loads and seperates source files by extension (.c and .cpp) from ./src/ for proper processing via $(CC) and/or $(CXX); loads and parses .so/.a library files from ./lib/ for $(LD); generates all target files (.o/.opp, .i/.ipp, .s/.spp, .d/.dpp, and .exe/.so/.a) and provides the proper recipe and dependencies for selected TARGET.
+
+3. Uses the proper compiler and options/flags (CC, or CXX) based on source extension .c and .cpp to build object files to avoid gcc/g++ default passthroughs.
 
 4. If mixing .c and .cpp source/object files, the final target uses CXX for proper linking.  If not mixed, the final target uses the appropriate compiler/linger (CC or CXX) based on source file extensions.
 
 5. .c and .cpp object files are designated with .o (for .c) and .opp (for .cpp) so that the correct compiler can be chosen by targeting the source and object extenstions.
 
-6. Provides a 'show' target for debuging make variables.
+6. Provides a 'show' target for debuging the makefile which displays status of variables.  By un-commenting the SHOW definition, you can force all targets to output a 'show' during execution.
 
-7. Uses $(RM) for future platform independence.
+7. Uses $(CC), $(CXX), $(LD), $(AR), and $(RM) for future platform independence.
 
-8. Supports CPPFLAGS, CXXFLAGS, and CFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
+8. Supports CPPFLAGS, CXXFLAGS, CFLAGS, and LDFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
 
-9. Targets Include:
-
-* all (default debug)
-* debug
-* release
-* clean (removes all object files and dependency makefiles)
-* mkdirs (creats required directory structure from .
+9. Version 2 loads .so and .a libraries from ./lib/ and parses the path/filename to strip the leading 'lib', the .so/.a suffix, and any Major/Minor/Release version tags (e.g. .1.0.1).  Example:  './lib/libMySharedLib.so.1.0.1' is parsed to '-lMySharedLib'.  The $(LIBDIR) string is prefixed by '-L' during linker for local library path.
