@@ -1,20 +1,22 @@
-# makefile ksc
+# Dynamic makefile for GNU gcc/g++/c/c++
+# Author:  Kenneth Cascio
 
+# Define TARGET w/out extension 
 TARGET = hello
 
+# Define Major, Minor, and Release versions for SHARED Libs / .so
 SOMAJ = .1
 SOMIN = .0
 SOREL = .0
 
+# Default directory tree for project
 SRCDIR = ./src/
 INCDIR = ./inc/
 LIBDIR = ./lib/
 BINDIR = ./bin/
 
-#VPATH = src inc
-
-# Run 'make show' with all targets for debugging variables
-SHOW = show
+# Un-comment to RUN 'make show' with all targets for debugging variables
+#SHOW = show
 
 # Designate Project Specific Libraries here.
 # Common:  -lpthread -ldl
@@ -38,7 +40,8 @@ DLDLIBS = $(LIBS)
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
-# Load *.c, *.cpp, *.so, and *.a files for processing
+
+# Load *.c, *.cpp, *.so, and *.a files for processing via make wildcard function
 
 SRCCCC := $(wildcard $(SRCDIR)*.c)
 SRCCPP := $(wildcard $(SRCDIR)*.cpp)
@@ -61,8 +64,11 @@ SRCTEMP := $(basename $(basename $(basename $(basename $(SRCSTAT)))))
 LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 
 # DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build logic
+
 DEFBLDS = all debug release dfull rfull shared dshared rshared static dstatic rstatic
 DEFCMDS = show clean mkdirs
+
+# Define .PHONY targets
 
 .PHONY : $(DEFBLDS)
 .PHONY : $(DEFCMDS)
@@ -254,6 +260,8 @@ ifeq ($(MAKECMDGOALS), clean)
 LDTARGET = $(TARGET:=.*)
 endif
 
+# Load typical environment for show
+
 ifeq ($(MAKECMDGOALS), show)
 LDTARGET = $(TARGET:=.exe)
 TARDIR = $(BINDIR)debug/
@@ -268,21 +276,9 @@ LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(DLDLIBS) $(LIBSHAR) $(LIBSTAT)
 endif
 
-
-TESTST = $(DEFBLDS) $(DEFCMDS)
-
-
-# Test routine for findstring logic - delete after commit
-# Test ifeq empty/whitespace
-ifeq ($(strip $(findstring $(MAKECMDGOALS), $(TESTST))),)
-TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
-TESTIF = NOT FOUND $(TESTST)
-else
-TESTIFEQ = "ifeq " $(strip $(findstring $(MAKECMDGOALS), $(TESTST)))
-TESTIF = FOUND $(TESTST)
-endif
-
 # Determine if DEFAULT build (no target passed to make) excluding whitespaces
+# Set to DEBUG defaults (copied from 'debug')
+
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
 DEFAULTBLD = true
 LDTARGET = $(TARGET:=.exe)
@@ -302,6 +298,7 @@ endif
 
 
 # TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP != ""
+
 ifneq (0, $(words $(SRCCPP)))
 SRCEXT := .cpp
 CCC = $(CXX)
@@ -312,6 +309,7 @@ CCC = $(CC)
 CCCFLAGS = $(CPPFLAGS) $(CFLAGS)
 endif
 
+# Use patsubst to setup build .c/.cpp, .d/.dpp, .s/.spp, and i/.ipp source strings
 
 OBJS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
 OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
@@ -326,8 +324,9 @@ SRCICC := $(patsubst $(SRCDIR)%.c, $(CPPDIR)%.i, $(SRCCCC))
 SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 
 
-############### BEGIN RECIPES ###############
+######################### BEGIN RECIPES #########################
 
+# Define .PHONY Targets and Dependencies
 
 all : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "all Done - all/DEFAULT DEBUG!"
@@ -363,24 +362,15 @@ rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo "rstatic Done!"
 
 
-# include all .d and .dpp makefiles from BINDIR/DEPDIR if not show/clean/mkdirs
-
-#ifneq ($(MAKECMDGOALS), show)
-#ifneq ($(MAKECMDGOALS), clean)
-#ifneq ($(MAKECMDGOALS), mkdirs)
-#include $(SRCDDD)
-#include $(SRCDPP)
-#endif
-#endif
-#endif
-
-
 # Include .d and .dpp makefile dependencies when MAKECMDGOALS != DEFCMDS
+
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFCMDS))),)
 include $(SRCDDD)
 include $(SRCDPP)
 endif
 
+
+# Specific target dependencies & recipes: .exe, .so, .a, .o, .opp, .s, spp, .i, .ipp, .d, .dpp
 
 $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 	@echo "Compiling $@ from $^...."
@@ -396,109 +386,69 @@ $(TARDIR)$(basename $(LDTARGET)).a : $(OBJS)
 	$(AR) rcsv $@ $^
 
 $(OBJDIR)%.o : $(SRCDIR)%.c
-	@echo "Compiling $<...."
-	#include $(SRCDDD)
+	@echo "Compiling $@ from $<...."
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ -c $<
 
-
 $(OBJDIR)%.opp : $(SRCDIR)%.cpp
-	@echo "Compiling $<...."
-	#include $(SRCDPP)
+	@echo "Compiling $@ from $<...."
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -o $@ -c $<
 
 $(ASMDIR)%.s : $(SRCDIR)%.c
-	@echo "Compiling to Assembly $<...."
-	#include $(SRCDDD)
+	@echo "Compiling $@ from $<...."
 	$(CC) -S $(CPPFLAGS) $(CFLAGS) -I$(INCDIR) -o $@ $<
 
 $(ASMDIR)%.spp : $(SRCDIR)%.cpp
-	@echo "Compiling to Assembly $<...."
-	#include $(SRCDPP)
+	@echo "Compiling $@ from $<...."
 	$(CXX) -S $(CPPFLAGS) $(CXXFLAGS) -I$(INCDIR) -o $@ $<
 
 $(CPPDIR)%.i : $(SRCDIR)%.c
-	@echo "Pre-Processing $<...."
-	#include $(SRCDDD)
+	@echo "Compiling $@ from $<...."
 	cpp $(CPPFLAGS) -I$(INCDIR) $<  -o $@
 
 $(CPPDIR)%.ipp : $(SRCDIR)%.cpp
-	@echo "Pre-Processing $<...."
-	#include $(SRCDPP)
+	@echo "Compiling $@ from $<...."
 	cpp $(CPPFLAGS) -I$(INCDIR) $<  -o $@
-
 
 # Build all .d make files from SRCCCC
 $(DEPDIR)%.d : $(SRCDIR)%.c
-	@echo "Compiling $@...."
+	@echo "Compiling $@ from $<...."
 	@set -e; $(RM) $@; \
          $(CC) -M -I$(INCDIR) $(CPPFLAGS) $< > $@.$$$$; \
          sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
          $(RM) $@.$$$$
 
-
 # Build all .dpp make files from SRCCPP
 $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
-	@echo "Compiling $@...."
+	@echo "Compiling $@ from $<...."
 	@set -e; $(RM) $@; \
          $(CXX) -M -I$(INCDIR) $(CPPFLAGS) $< > $@.$$$$; \
          sed 's,\($*\)\.o[ :]*,\1.opp $@ : ,g' < $@.$$$$ > $@; \
          $(RM) $@.$$$$
 
 
-# sed breakout for %.d : %.c target/depend rule
-# converts $(CC) -M $< output saved in $@.$$$$ temp file from
-# main.o : main.c module.h
-# to
-# main.o main.d : main.c moudle.h
-#
-# sed	begin sed command
-# '	open quote for substitution pattern
-# s,	designate substitution with comma ',' as the seperator
-# \(	open group \1 with escape \ and (
-# $*	target name minus the suffix
-# \)	close group \1 with escape \ and )
-# \.	change . character from REGEXP "anything" to single . with escap \
-# [	open bracket expression - match a single character contained in brackets
-# ' :'	' ' & ':' - characters to match in bracket expression
-# ]	close bracket expression - match a single character contained in brackets
-# *	match previous expression zero or more times. ' ', ':', ' :', ': '
-# '	comma pattern seperator
-# \1	refers to the characters captured by escaped parentheses, group 1
-# .o	adds the .o extension back to group 1 caputred characters
-# $@	insert the target file name (%.d)
-#  : 	inster space colon space ' : ' as the target/depend seperator
-# ,	comma pattern seperator
-# g	repeat the substitution until EOL
-# '	close quote for suptitution pattern
-# <	input file redirection; input file created by CC to sed
-# $@	use target filename
-# .$$$$	append PID; $$$$ resolves to $$ in make; PID = Process ID of calling process
-# >	out file redirection; output results to target file $@
-# $(RM)	make rm/del replacement; resolves to rm -f on linux to remove temp file
-# $@	target file name
-# .$$$$	append PID; $$$$ resolves to $$ in make; PID = Process ID of calling process
-
-
 show:
-	@echo 'SRCCCC = '$(SRCCCC)
-	@echo 'SRCCPP = '$(SRCCPP)
+	@echo "**************************  BEGIN SHOW  **************************"
+	@echo "MAKECMDGOALS = "$(MAKECMDGOALS)
+	@echo "SRCCCC = "$(SRCCCC)
+	@echo "SRCCPP = "$(SRCCPP)
 	@echo "TARDIR = "$(TARDIR)
 	@echo "OBJDIR = "$(OBJDIR)
 	@echo "BINDIR = "$(BINDIR)
 	@echo "DEPDIR = "$(DEPDIR)
 	@echo "ASMDIR = "$(ASMDIR)
 	@echo "CPPDIR = "$(CPPDIR)
-	@echo 'LIBS =   '$(LIBS)
-	@echo 'OBJS =   '$(OBJS)
-	@echo 'CCC =    '$(CCC)
-	@echo 'CC =     '$(CC)
-	@echo 'CXX =    '$(CXX)
-	@echo 'SRCEXT = '$(SRCEXT)
-	@echo 'RM =     '$(RM)
-	@echo 'CPPFLAGS='$(CPPFLAGS)
-	@echo 'CXXFLAGS='$(CXXFLAGS)
-	@echo 'CFLAGS = '$(CFLAGS)
-	@echo 'CCCFLAGS='$(CCCFLAGS)
+	@echo "LIBS   = "$(LIBS)
+	@echo "OBJS   = "$(OBJS)
+	@echo "CCC    = "$(CCC)
+	@echo "CC     = "$(CC)
+	@echo "CXX    = "$(CXX)
+	@echo "AR     = "$(AR)
+	@echo "SRCEXT = "$(SRCEXT)
+	@echo "RM     =  "$(RM)
+	@echo "CPPFLAGS = "$(CPPFLAGS)
+	@echo "CXXFLAGS = "$(CXXFLAGS)
+	@echo "CFLAGS   = "$(CFLAGS)
+	@echo "CCCFLAGS = "$(CCCFLAGS)
 	@echo "SRCCCC = "$(SRCCCC)
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "SRCDDD = "$(SRCDDD)
@@ -507,27 +457,22 @@ show:
 	@echo "SRCSPP = "$(SRCSPP)
 	@echo "SRCICC = "$(SRCICC)
 	@echo "SRCIPP = "$(SRCIPP)
-	@echo "LDTARGET="$(LDTARGET)
-	@echo "LDFLAGS = "$(LDFLAGS)
-	@echo "LDLIBS  = "$(LDLIBS)
-	@echo "SHOW    ="$(SHOW)
-	@echo "=========================================================="
+	@echo "LDTARGET = "$(LDTARGET)
+	@echo "LDFLAGS  = "$(LDFLAGS)
+	@echo "LDLIBS   = "$(LDLIBS)
+	@echo "SRCSHAR  = "$(SRCSHAR)
+	@echo "SRCSTAT  = "$(SRCSTAT)
+	@echo "LIBSTAT  = "$(LIBSTAT)
+	@echo "LIBSHAR  = "$(LIBSHAR)
+	@echo "SHOW = "$(SHOW)
+	@echo "=====================  TEST VARIABLS/FUNCTIONS ====================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
 	@echo "words SRCDIR =  "$(words $(wildcard $(SRCDIR)*.c))
-	@echo "words CPPFLAGS ="$(words $(CPPFLAGS))
+	@echo "words CPPFLAGS = "$(words $(CPPFLAGS))
 	@echo "basename LDTARGET = "$(basename $(LDTARGET))
 	@echo "suffix LDTARGET = "$(suffix $(LDTARGET))
-	@echo "MAKECMDGOALS = "$(MAKECMDGOALS)
 	@echo "DEFAULTBLD = "$(DEFAULTBLD)
-	@echo "TESTST = "$(TESTST)
-	@echo "TESTIF = "$(TESTIF)
-	@echo "TESTIFEQ = "$(TESTIFEQ)
-	@echo "SRCSHAR = "$(SRCSHAR)
-	@echo "SRCSTAT = "$(SRCSTAT)
-	@echo "LIBSTAT = "$(LIBSTAT)
-	@echo "LIBSHAR = "$(LIBSHAR)
-	@echo "=========================================================="
-
+	@echo "============================  END SHOW  ============================"
 
 clean: $(SHOW)
 	$(RM) $(BINDIR)debug/obj/*.o $(BINDIR)debug/obj/*.opp
@@ -554,4 +499,3 @@ mkdirs: $(SHOW)
 	mkdir -p $(BINDIR)release/dep
 	mkdir -p $(BINDIR)release/asm
 	mkdir -p $(BINDIR)release/cpp
-
