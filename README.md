@@ -14,9 +14,11 @@ The repository contains a simple mixed .c/.cpp 'hello world' project for testing
 
 To create a new/empty project, copy 'makefile' to the project directory and run 'make mkdirs' to create the project directories.  Add .c/.cpp files to src; .h/.hpp files to inc; .so/.a files to lib; and make will auto-load all dependencies to build the selected target.
 
-Do not put an extension in the TARGET string - the extension is added based on the selected target.
+Do not put an extension in the TARGET string - the extension is added based on the selected goal via command line 'make'.
 
-If building shared libraries, edit SOMAJ, SOMIN, and SOREL (major, minor, and release versions) - the default is '.1.0.1'.  The target will be built with the '.so.MAJ.MIN.REL' suffix and the 'lib' prefix.  Additionally, the 'soname' will be created with the 'lib' prefix and a '.so.MAJ' suffix.
+If building shared libraries, edit SOMAJ, SOMIN, and SOREL (major, minor, and release versions) - the default is '.1.0.0'.  The target will be built with the '.so.MAJ.MIN.REL' suffix and the 'lib' prefix.  Additionally, the 'soname' will be created with the 'lib' prefix and a '.so.MAJ' suffix.
+
+When building SHARED or STATIC libraries, any reference to main.c or main.cpp is automatically removed from the source and object strings since you don't need an entry point in a library.  This way, you can technically turn your functioning program into a library in the same project and copy the .so or .a to next project.  This allows you to have test routines in your project main.c/.cpp to debug before compiling the library.
 
 Defined Targets:
 * all (default build - same as debug for .exe target)
@@ -50,4 +52,4 @@ Defined Targets:
 
 8. Supports CPPFLAGS, CXXFLAGS, CFLAGS, and LDFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
 
-9. Version 2 loads .so and .a libraries from ./lib/ and parses the path/filename to strip the leading 'lib', the .so/.a suffix, and any Major/Minor/Release version tags (e.g. .1.0.1).  Example:  './lib/libMySharedLib.so.1.0.1' is parsed to '-lMySharedLib'.  The $(LIBDIR) string is prefixed by '-L' during linker for local library path.
+9. Version 2 loads .so and .a libraries from ./lib/ and parses the path/filename to strip the leading 'lib', the .so/.a suffix, and any Major/Minor/Release version tags (e.g. .1.0.0).  Example:  './lib/libMySharedLib.so.1.0.0' is parsed to '-lMySharedLib'.  The $(LIBDIR) string is prefixed by '-L' during linker for local library path.
