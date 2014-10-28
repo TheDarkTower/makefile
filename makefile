@@ -1,5 +1,7 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
+# Version: 2.0.1
+
 
 # Define TARGET w/out extension 
 TARGET = hello
@@ -7,7 +9,7 @@ TARGET = hello
 # Define Major, Minor, and Release versions for SHARED Libs / .so
 SOMAJ = .1
 SOMIN = .0
-SOREL = .0
+SOREL = .1
 
 # Default directory tree for project
 SRCDIR = ./src/
@@ -374,12 +376,12 @@ endif
 
 $(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) -o $@ $^
+	$(CCC) $(LDFLAGS) -L$(LIBDIR) -o $@ $^ $(LDLIBS)
 
 $(TARDIR)$(basename $(LDTARGET)).so : $(OBJS)
 	@echo "Compiling $@ from $^...."
-	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) $(LDLIBS) \
-	 -Wl,-soname=$(LDSONAME) -o $@$(SOMAJ)$(SOMIN)$(SOREL) $^
+	$(CCC) -shared -fPIC $(LDFLAGS) -L$(LIBDIR) \
+	 -Wl,-soname=$(LDSONAME) -o $@$(SOMAJ)$(SOMIN)$(SOREL) $^ $(LDLIBS)
 
 $(TARDIR)$(basename $(LDTARGET)).a : $(OBJS)
 	@echo "Compiling $@ from $^...."
