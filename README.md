@@ -4,21 +4,25 @@ by: Kenneth Cascio
 
 Dynamic makefile for GNU gcc/g++ on Linux.
 
+Version 2.0.2 fixed the order in the LDLIBS variable to push local (./lib) libraries first so that -lpthread, -ldl, etc. would properly to all object files.  Now uses full path and name for local project ./lib shared and static libraries.  If compiling against a new shared library, you will need to load the new .so via 'sudo ldconfig' before execution of the new file or the OS/dynamic loader will not know where to find the new shared library.
+
+Version 2.0.1 moved all LDLIBS after the $^ (object files) for proper processing of all objects (i.e. -lpthread and -ldl after all obj files in ld.
+
 Automatically loads project source files and builds release and debug versions of .exe, .so, and .a targets.  As detailed below under Defined Targets, you can also build the intermediate steps for the project to evaluate the pre-processor and/or assembly outputs.
 
-Allows for simultaneous debug and release builds in the ./bin/debug/ and ./bin/release/ directoires.
+Allows for simultaneous debug and release builds in the ./bin/debug/ and ./bin/release/ directoires with no overlap in builds.
 
-NOTE:  When building shared libraries (.so via shared, dshared, or rshared) you may have to perform a 'make clean' to remove any object files created by previous calls to a non-shared target.  All shared library files must be built with -fPIC for Position Independent Code.  Those object files could be up to date via all debendencies; but, built w/out -fPIC.
+NOTE:  When building shared libraries (.so via shared, dshared, or rshared) you may have to perform a 'make clean' to remove any object files created by previous calls to a non-shared target.  All shared library files must be built with -fPIC for Position Independent Code.  Those object files could be up to date via all dependencies; but, built w/out -fPIC.
 
 The repository contains a simple mixed .c/.cpp 'hello world' project for testing purposes.  All you need is the actual makefile.
 
-To create a new/empty project, copy 'makefile' to the project directory and run 'make mkdirs' to create the project directories.  Add .c/.cpp files to src; .h/.hpp files to inc; .so/.a files to lib; and make will auto-load all dependencies to build the selected target.
+To create a new/empty project, copy 'makefile' to the project directory and run 'make mkdirs' to create the project directories.  Add .c/.cpp files to src; .h/.hpp files to inc; .so/.a files to lib; and make will auto-load all dependencies to build the selected target.  Edit the makefile to change the TARGET, version numbers, system libraries (.so or .a), and debug/release flags.
 
-Do not put an extension in the TARGET string - the extension is added based on the selected goal via command line 'make'.
+Do not put an extension in the TARGET string of the makefile - the extension is added based on the selected goal via command line 'make'.
 
 If building shared libraries, edit SOMAJ, SOMIN, and SOREL (major, minor, and release versions) - the default is '.1.0.1'.  The target will be built with the '.so.MAJ.MIN.REL' suffix and the 'lib' prefix.  Additionally, the 'soname' will be created with the 'lib' prefix and a '.so.MAJ' suffix.
 
-When building SHARED or STATIC libraries, any reference to main.c or main.cpp is automatically removed from the source and object strings since you don't need an entry point in a library.  This way, you can technically turn your functioning program into a library in the same project and copy the .so or .a to next project.  This allows you to have test routines in your project main.c/.cpp to debug before compiling the library.
+When building SHARED or STATIC libraries, any reference to main.c or main.cpp is automatically removed from the source and object strings since you don't need an entry point in a library.  This way, you can technically turn your functioning program into a library in the same project and copy the .so or .a to the next project (or make system wide with 'sudo ldconfig').  This allows you to have test routines in your project main.c/.cpp to debug before compiling the library.
 
 Defined Targets:
 * all (default build - same as debug for .exe target)
@@ -52,4 +56,4 @@ Defined Targets:
 
 8. Supports CPPFLAGS, CXXFLAGS, CFLAGS, and LDFLAGS with debug/release logic for proper build FLAGS while maintaining the ability to pass values via the command line.
 
-9. Version 2 loads .so and .a libraries from ./lib/ and parses the path/filename to strip the leading 'lib', the .so/.a suffix, and any Major/Minor/Release version tags (e.g. .1.0.1).  Example:  './lib/libMySharedLib.so.1.0.1' is parsed to '-lMySharedLib'.  The $(LIBDIR) string is prefixed by '-L' during linker for local library path.
+9. DEPRECIATED - the code still exists but V2.0.2+ are using the fullpath/fullname for linking:  Version 2 loads .so and .a libraries from ./lib/ and parses the path/filename to strip the leading 'lib', the .so/.a suffix, and any Major/Minor/Release version tags (e.g. .1.0.1).  Example:  './lib/libMySharedLib.so.1.0.1' is parsed to '-lMySharedLib'.  The $(LIBDIR) string is prefixed by '-L' during linker for local library path.
