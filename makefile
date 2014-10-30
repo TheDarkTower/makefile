@@ -1,10 +1,15 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 2.0.2
+# Version: 2.0.3
 
+SHELL = /bin/bash
 
-# Define TARGET w/out extension 
+# Set HOME env variable if '~' not supported on build system.
+#HOME =
+
+# Define TARGET and TAREXT (target extension for binary - blank if none)
 TARGET = hello
+TAREXT = .exe
 
 # Define Major, Minor, and Release versions for SHARED Libs / .so
 SOMAJ = .1
@@ -16,6 +21,13 @@ SRCDIR = ./src/
 INCDIR = ./inc/
 LIBDIR = ./lib/
 BINDIR = ./bin/
+LOGDIR = ./log/
+
+# Default install directories
+INSTALL_BIN = ~/bin/TESTBED/bin/
+INSTALL_SHA = ~/bin/TESTBED/lib/
+INSTALL_SYM = ~/bin/TESTBED/lib/
+INSTALL_STA = ~/bin/TESTBED/lib/
 
 # Un-comment to RUN 'make show' with all targets for debugging variables
 #SHOW = show
@@ -42,6 +54,10 @@ DLDLIBS = $(LIBS)
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
+LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
+LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
+LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
+LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
 
 # Load *.c, *.cpp, *.so, and *.a files for processing via make wildcard function
 
@@ -67,8 +83,12 @@ LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 
 # DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build logic
 
-DEFBLDS = all debug release dfull rfull shared dshared rshared static dstatic rstatic
-DEFCMDS = show clean mkdirs
+DEFBINS = all debug release dfull rfull
+DEFSHAR = shared dshared rshared
+DEFSTAT = static dstatic rstatic
+DEFCMDS = show clean mkdirs install
+DEFBLDS = $(DEFBINS) $(DEFSHAR) $(DEFSTAT)
+
 
 # Define .PHONY targets
 
@@ -78,7 +98,9 @@ DEFCMDS = show clean mkdirs
 # Set directories and flags based on MAKECMDGOALS
 
 ifeq ($(MAKECMDGOALS), all)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -92,7 +114,9 @@ LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), debug)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -106,7 +130,9 @@ LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), release)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)release/
 OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
@@ -120,7 +146,9 @@ LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), dfull)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -134,7 +162,9 @@ LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), rfull)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)release/
 OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
@@ -150,6 +180,7 @@ endif
 ifeq ($(MAKECMDGOALS), shared)
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
+LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -169,6 +200,7 @@ endif
 ifeq ($(MAKECMDGOALS), dshared)
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
+LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -188,6 +220,7 @@ endif
 ifeq ($(MAKECMDGOALS), rshared)
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
+LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
 TARDIR = $(BINDIR)release/
 OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
@@ -206,6 +239,8 @@ endif
 
 ifeq ($(MAKECMDGOALS), static)
 LDTARGET = lib$(TARGET:=.a)
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -224,6 +259,8 @@ endif
 
 ifeq ($(MAKECMDGOALS), dstatic)
 LDTARGET = lib$(TARGET:=.a)
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -242,6 +279,8 @@ endif
 
 ifeq ($(MAKECMDGOALS), rstatic)
 LDTARGET = lib$(TARGET:=.a)
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)release/
 OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
@@ -260,12 +299,16 @@ endif
 
 ifeq ($(MAKECMDGOALS), clean)
 LDTARGET = $(TARGET:=.*)
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 endif
 
 # Load typical environment for show
 
 ifeq ($(MAKECMDGOALS), show)
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -276,6 +319,30 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+endif
+
+# Setup install environment based on log files
+
+ifeq ($(MAKECMDGOALS), install)
+INSTALL_MS := @echo "Nothing to install..."
+INSTALL_CP := @echo "No files to copy..."
+INSTALL_LN := @echo "No symlinks to create..."
+# Check for BIN
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
+INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
+INSTALL_CP := cp $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
+endif
+# Check for SHA
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
+INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
+INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
+INSTALL_LN := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
+endif
+# Check for STA
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
+INSTALL_MS := @echo "Installing static library: $(LASTTARGET)"
+INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
+endif
 endif
 
 # Determine if DEFAULT build (no target passed to make) excluding whitespaces
@@ -283,7 +350,9 @@ endif
 
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
 DEFAULTBLD = true
-LDTARGET = $(TARGET:=.exe)
+LDTARGET = $(TARGET:=$(TAREXT))
+LDSONAME =
+LDLSNAME = $(LDTARGET)
 TARDIR = $(BINDIR)debug/
 OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
@@ -294,6 +363,7 @@ CXXFLAGS += $(DCXXFLAGS)
 CFLAGS += $(DCFLAGS)
 LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+MAKECMDGOALS = all
 else
 DEFAULTBLD = false
 endif
@@ -331,36 +401,72 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 # Define .PHONY Targets and Dependencies
 
 all : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "all Done - all/DEFAULT DEBUG!"
 
 debug : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "debug Done!"
 
 release : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "release Done!"
 
 dfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dfull Done!"
 
 rfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rfull Done!"
 
 shared : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
+	@echo $(INSTALL_SHA)
+	cp -f $(TARDIR)$(LDLSNAME) $(INSTALL_SHA)
+	ln -fs $(INSTALL_SHA)$(LDLSNAME) $(INSTALL_SHA)$(LDSONAME)
 	@echo "shared Done!"
 
 dshared : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dshared Done!"
 
 rshared : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rshared Done!"
 
 static : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "static Done!"
 
 dstatic : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dstatic Done!"
 
 rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
+	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
+	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rstatic Done!"
 
 
@@ -374,7 +480,7 @@ endif
 
 # Specific target dependencies & recipes: .exe, .so, .a, .o, .opp, .s, spp, .i, .ipp, .d, .dpp
 
-$(TARDIR)$(basename $(LDTARGET)).exe : $(OBJS)
+$(TARDIR)$(basename $(LDTARGET))$(TAREXT) : $(OBJS)
 	@echo "Compiling $@ from $^...."
 	$(CCC) $(LDFLAGS) -L$(LIBDIR) -o $@ $^ $(LDLIBS)
 
@@ -439,6 +545,7 @@ show:
 	@echo "DEPDIR = "$(DEPDIR)
 	@echo "ASMDIR = "$(ASMDIR)
 	@echo "CPPDIR = "$(CPPDIR)
+	@echo "LOGDIR = "$(LOGDIR)
 	@echo "LIBS   = "$(LIBS)
 	@echo "OBJS   = "$(OBJS)
 	@echo "CCC    = "$(CCC)
@@ -474,6 +581,16 @@ show:
 	@echo "basename LDTARGET = "$(basename $(LDTARGET))
 	@echo "suffix LDTARGET = "$(suffix $(LDTARGET))
 	@echo "DEFAULTBLD = "$(DEFAULTBLD)
+	@echo "LN = "$(LN)
+	@echo "CP = "$(CP)
+	@echo "MV = "$(MV)
+	@echo "PLATFORM = "$(PLATFORM)
+	@echo "LASTBUILD = "$(LASTBUILD)
+	@echo "LASTTPATH = "$(LASTTPATH)
+	@echo "LASTTARGET = "$(LASTTARGET)
+	@echo "LASTSONAME = "$(LASTSONAME)
+	@echo "LD_LIBRARY_PATH = "$(LD_LIBRARY_PATH)
+	@echo "PATH = "$(PATH)
 	@echo "============================  END SHOW  ============================"
 
 clean: $(SHOW)
@@ -485,14 +602,15 @@ clean: $(SHOW)
 	$(RM) $(BINDIR)release/asm/*.s $(BINDIR)release/asm/*.spp
 	$(RM) $(BINDIR)debug/cpp/*.i $(BINDIR)debug/cpp/*.ipp
 	$(RM) $(BINDIR)release/cpp/*.i $(BINDIR)release/cpp/*.ipp
-	$(RM) $(BINDIR)debug/*.exe $(BINDIR)debug/*.so* $(BINDIR)debug/*.a*
-	$(RM) $(BINDIR)release/*.exe $(BINDIR)release/*.so* $(BINDIR)release/*.a*
-
+	$(RM) $(BINDIR)debug/$(TARGET)$(TAREXT) $(BINDIR)debug/*.so* $(BINDIR)debug/*.a*
+	$(RM) $(BINDIR)release/$(TARGET)$(TAREXT) $(BINDIR)release/*.so* $(BINDIR)release/*.a*
+	$(RM) $(LOGDIR)*
 
 mkdirs: $(SHOW)
 	mkdir -p $(SRCDIR)
 	mkdir -p $(INCDIR)
 	mkdir -p $(LIBDIR)
+	mkdir -p $(LOGDIR)
 	mkdir -p $(BINDIR)debug/obj
 	mkdir -p $(BINDIR)debug/dep
 	mkdir -p $(BINDIR)debug/asm
@@ -501,3 +619,16 @@ mkdirs: $(SHOW)
 	mkdir -p $(BINDIR)release/dep
 	mkdir -p $(BINDIR)release/asm
 	mkdir -p $(BINDIR)release/cpp
+	mkdir -p $(INSTALL_BIN)
+	mkdir -p $(INSTALL_SHA)
+	mkdir -p $(INSTALL_SYM)
+	mkdir -p $(INSTALL_STA)
+
+install: $(SHOW)
+	$(INSTALL_MS)
+	$(INSTALL_CP)
+	$(INSTALL_LN)
+	@echo "Install Complete!"
+	ls -lah $(INSTALL_BIN)
+	ls -lah $(INSTALL_SHA)
+	
