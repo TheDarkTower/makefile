@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 2.0.3
+# Version: 3.0.0
 
 SHELL = /bin/bash
 
