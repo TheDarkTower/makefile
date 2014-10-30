@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.0
+# Version: 3.0.1
 
 SHELL = /bin/bash
 
@@ -434,9 +434,6 @@ shared : $(SHOW) $(TARDIR)$(LDTARGET)
 	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo $(INSTALL_SHA)
-	cp -f $(TARDIR)$(LDLSNAME) $(INSTALL_SHA)
-	ln -fs $(INSTALL_SHA)$(LDLSNAME) $(INSTALL_SHA)$(LDSONAME)
 	@echo "shared Done!"
 
 dshared : $(SHOW) $(TARDIR)$(LDTARGET)
