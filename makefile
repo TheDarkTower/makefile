@@ -1,7 +1,8 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.2
+# Version: 3.0.3
 
+# Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
 
 # Set HOME env variable if not supported on build system.
@@ -82,7 +83,7 @@ LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 DEFBINS = all debug release dfull rfull
 DEFSHAR = shared dshared rshared
 DEFSTAT = static dstatic rstatic
-DEFCMDS = show clean mkdirs install teston testoff
+DEFCMDS = show clean mkdirs install
 DEFBLDS = $(DEFBINS) $(DEFSHAR) $(DEFSTAT)
 
 # Define .PHONY targets
@@ -325,30 +326,6 @@ LDFLAGS += $(DLDFLAGS)
 LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
-# Setup install environment based on log files
-
-ifeq ($(MAKECMDGOALS), install)
-INSTALL_MS := @echo "Nothing to install..."
-INSTALL_CP := @echo "No files to copy..."
-INSTALL_LN := @echo "No symlinks to create..."
-# Check for BIN
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
-INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
-INSTALL_CP := cp $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
-endif
-# Check for SHA
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
-INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
-INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
-INSTALL_LN := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
-endif
-# Check for STA
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
-INSTALL_MS := @echo "Installing static library: $(LASTTARGET)"
-INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
-endif
-endif
-
 # Determine if DEFAULT BUILD (no target passed to make) excluding whitespaces
 # Set to DEBUG defaults (copied from 'debug')
 
@@ -372,45 +349,28 @@ else
 DEFAULTBLD = false
 endif
 
-# Turn on TESBED paths for library and binary testing/building
+# Setup INSTALL environment based on log files
 
-ifeq ($(MAKECMDGOALS), teston)
-TMPLIBPATH := $(LD_LIBRARY_PATH)
-TMPSYSPATH := $(PATH)
-ADDLIBPATH :=
-ADDSYSPATH :=
-ifneq ($(INSTALL_SHA), $(findstring $(INSTALL_SHA), $(TMPLIBPATH) $(ADDLIBPATH)))
-ADDLIBPATH += $(INSTALL_SHA):
+ifeq ($(MAKECMDGOALS), install)
+INSTALL_MS := @echo "Nothing to install..."
+INSTALL_CP := @echo "No files to copy..."
+INSTALL_LN := @echo "No symlinks to create..."
+# Check for BIN
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
+INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
+INSTALL_CP := cp $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
 endif
-ifneq ($(INSTALL_SYM), $(findstring $(INSTALL_SYM), $(TMPLIBPATH) $(ADDLIBPATH)))
-ADDLIBPATH += $(INSTALL_SYM):
+# Check for SHA
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
+INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
+INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
+INSTALL_LN := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
 endif
-ifneq ($(INSTALL_STA), $(findstring $(INSTALL_STA), $(TMPLIBPATH) $(ADDLIBPATH)))
-ADDLIBPATH += $(INSTALL_STA):
+# Check for STA
+ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
+INSTALL_MS := @echo "Installing static library: $(LASTTARGET)"
+INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
 endif
-ifneq ($(INSTALL_BIN), $(findstring $(INSTALL_BIN), $(TMPSYSPATH) $(ADDSYSPATH)))
-ADDSYSPATH += $(INSTALL_BIN):
-endif
-#$(shell export LD_LIBRARY_PATH="$(ADDLIBPATH)$$LD_LIBRARY_PATH"; echo $$LD_LIBRARY_PATH)
-#$(shell export PATH="$(ADDSYSPATH)$$PATH"; echo $$PATH)
-#export TEST="test"
-endif
-
-# Turn off TESBED paths for library and binary testing/building
-
-ifeq ($(MAKECMDGOALS), testoff)
-TMPLIBPATH := $(INSTALL_SHA):$(LD_LIBRARY_PATH)
-TMPSYSPATH := $(INSTALL_BIN):$(PATH)
-TSTLIBPATH := $(TMPLIBPATH)
-TSTSYSPATH := $(TMPSYSPATH)
-TEMP := $(subst $(INSTALL_SHA):,,$(TSTLIBPATH))
-TSTLIBPATH := $(TEMP)
-TEMP := $(subst $(INSTALL_SYM):,,$(TSTLIBPATH))
-TSTLIBPATH := $(TEMP)
-TEMP := $(subst $(INSTALL_STA):,,$(TSTLIBPATH))
-TSTLIBPATH := $(TEMP)
-TEMP := $(subst $(INSTALL_BIN):,,$(TSTSYSPATH))
-TSTSYSPATH := $(TEMP)
 endif
 
 # TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP != ""
@@ -632,10 +592,6 @@ show:
 	@echo "LASTTPATH = "$(LASTTPATH)
 	@echo "LASTTARGET = "$(LASTTARGET)
 	@echo "LASTSONAME = "$(LASTSONAME)
-	@echo "LD_LIBRARY_PATH = "$(LD_LIBRARY_PATH)
-	@echo "PATH = "$(PATH)
-	@echo "TMPLIBPATH = "$(TMPLIBPATH)
-	@echo "TMPSYSPATH = "$(TMPSYSPATH)
 	@echo "HOME = "$(HOME)
 	@echo "============================  END SHOW  ============================"
 
@@ -677,19 +633,4 @@ install: $(SHOW)
 	@echo "Install Complete!"
 	ls -lah $(INSTALL_BIN)
 	ls -lah $(INSTALL_SHA)
-
-teston: $(SHOW)
-	@echo "TMPLIBPATH = "$(TMPLIBPATH)
-	@echo "TMPSYSPATH = "$(TMPSYSPATH)
-	@echo "ADDLIBPATH = "$(ADDLIBPATH)
-	@echo "ADDSYSPATH = "$(ADDSYSPATH)
-	@echo $$LD_LIBRARY_PATH
-	@echo $$PATH
-	export TEST="TESTING"
-
-testoff: $(SHOW)
-	@echo "TMPLIBPATH = "$(TMPLIBPATH)
-	@echo "TMPSYSPATH = "$(TMPSYSPATH)
-	@echo "TSTLIBPATH = "$(TSTLIBPATH)
-	@echo "TSTSYSPATH = "$(TSTSYSPATH)
 	
