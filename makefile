@@ -1,10 +1,10 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.1
+# Version: 3.0.2
 
-SHELL = /bin/bash
+#SHELL = /bin/bash
 
-# Set HOME env variable if '~' not supported on build system.
+# Set HOME env variable if not supported on build system.
 #HOME =
 
 # Define TARGET and TAREXT (target extension for binary - blank if none)
@@ -24,10 +24,10 @@ BINDIR = ./bin/
 LOGDIR = ./log/
 
 # Default install directories
-INSTALL_BIN = ~/bin/TESTBED/bin/
-INSTALL_SHA = ~/bin/TESTBED/lib/
-INSTALL_SYM = ~/bin/TESTBED/lib/
-INSTALL_STA = ~/bin/TESTBED/lib/
+INSTALL_BIN = $(HOME)/bin/TESTBED/bin/
+INSTALL_SHA = $(HOME)/bin/TESTBED/lib/
+INSTALL_SYM = $(HOME)/bin/TESTBED/lib/
+INSTALL_STA = $(HOME)/bin/TESTBED/lib/
 
 # Un-comment to RUN 'make show' with all targets for debugging variables
 #SHOW = show
@@ -54,10 +54,6 @@ DLDLIBS = $(LIBS)
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
 
-LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
-LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
-LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
-LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
 
 # Load *.c, *.cpp, *.so, and *.a files for processing via make wildcard function
 
@@ -86,14 +82,22 @@ LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 DEFBINS = all debug release dfull rfull
 DEFSHAR = shared dshared rshared
 DEFSTAT = static dstatic rstatic
-DEFCMDS = show clean mkdirs install
+DEFCMDS = show clean mkdirs install teston testoff
 DEFBLDS = $(DEFBINS) $(DEFSHAR) $(DEFSTAT)
-
 
 # Define .PHONY targets
 
 .PHONY : $(DEFBLDS)
 .PHONY : $(DEFCMDS)
+
+# Load log files if command target only
+
+ifeq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFCMDS)))
+LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
+LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
+LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
+LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
+endif
 
 # Set directories and flags based on MAKECMDGOALS
 
@@ -345,7 +349,7 @@ INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
 endif
 endif
 
-# Determine if DEFAULT build (no target passed to make) excluding whitespaces
+# Determine if DEFAULT BUILD (no target passed to make) excluding whitespaces
 # Set to DEBUG defaults (copied from 'debug')
 
 ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
@@ -368,6 +372,46 @@ else
 DEFAULTBLD = false
 endif
 
+# Turn on TESBED paths for library and binary testing/building
+
+ifeq ($(MAKECMDGOALS), teston)
+TMPLIBPATH := $(LD_LIBRARY_PATH)
+TMPSYSPATH := $(PATH)
+ADDLIBPATH :=
+ADDSYSPATH :=
+ifneq ($(INSTALL_SHA), $(findstring $(INSTALL_SHA), $(TMPLIBPATH) $(ADDLIBPATH)))
+ADDLIBPATH += $(INSTALL_SHA):
+endif
+ifneq ($(INSTALL_SYM), $(findstring $(INSTALL_SYM), $(TMPLIBPATH) $(ADDLIBPATH)))
+ADDLIBPATH += $(INSTALL_SYM):
+endif
+ifneq ($(INSTALL_STA), $(findstring $(INSTALL_STA), $(TMPLIBPATH) $(ADDLIBPATH)))
+ADDLIBPATH += $(INSTALL_STA):
+endif
+ifneq ($(INSTALL_BIN), $(findstring $(INSTALL_BIN), $(TMPSYSPATH) $(ADDSYSPATH)))
+ADDSYSPATH += $(INSTALL_BIN):
+endif
+#$(shell export LD_LIBRARY_PATH="$(ADDLIBPATH)$$LD_LIBRARY_PATH"; echo $$LD_LIBRARY_PATH)
+#$(shell export PATH="$(ADDSYSPATH)$$PATH"; echo $$PATH)
+#export TEST="test"
+endif
+
+# Turn off TESBED paths for library and binary testing/building
+
+ifeq ($(MAKECMDGOALS), testoff)
+TMPLIBPATH := $(INSTALL_SHA):$(LD_LIBRARY_PATH)
+TMPSYSPATH := $(INSTALL_BIN):$(PATH)
+TSTLIBPATH := $(TMPLIBPATH)
+TSTSYSPATH := $(TMPSYSPATH)
+TEMP := $(subst $(INSTALL_SHA):,,$(TSTLIBPATH))
+TSTLIBPATH := $(TEMP)
+TEMP := $(subst $(INSTALL_SYM):,,$(TSTLIBPATH))
+TSTLIBPATH := $(TEMP)
+TEMP := $(subst $(INSTALL_STA):,,$(TSTLIBPATH))
+TSTLIBPATH := $(TEMP)
+TEMP := $(subst $(INSTALL_BIN):,,$(TSTSYSPATH))
+TSTSYSPATH := $(TEMP)
+endif
 
 # TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP != ""
 
@@ -397,6 +441,7 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 
 
 ######################### BEGIN RECIPES #########################
+
 
 # Define .PHONY Targets and Dependencies
 
@@ -578,9 +623,10 @@ show:
 	@echo "basename LDTARGET = "$(basename $(LDTARGET))
 	@echo "suffix LDTARGET = "$(suffix $(LDTARGET))
 	@echo "DEFAULTBLD = "$(DEFAULTBLD)
-	@echo "LN = "$(LN)
-	@echo "CP = "$(CP)
-	@echo "MV = "$(MV)
+	@echo "INSTALL_BIN = "$(INSTALL_BIN)
+	@echo "INSTALL_SHA = "$(INSTALL_SHA)
+	@echo "INSTALL_SYM = "$(INSTALL_SYM)
+	@echo "INSTALL_STA = "$(INSTALL_STA)
 	@echo "PLATFORM = "$(PLATFORM)
 	@echo "LASTBUILD = "$(LASTBUILD)
 	@echo "LASTTPATH = "$(LASTTPATH)
@@ -588,6 +634,9 @@ show:
 	@echo "LASTSONAME = "$(LASTSONAME)
 	@echo "LD_LIBRARY_PATH = "$(LD_LIBRARY_PATH)
 	@echo "PATH = "$(PATH)
+	@echo "TMPLIBPATH = "$(TMPLIBPATH)
+	@echo "TMPSYSPATH = "$(TMPSYSPATH)
+	@echo "HOME = "$(HOME)
 	@echo "============================  END SHOW  ============================"
 
 clean: $(SHOW)
@@ -628,4 +677,19 @@ install: $(SHOW)
 	@echo "Install Complete!"
 	ls -lah $(INSTALL_BIN)
 	ls -lah $(INSTALL_SHA)
+
+teston: $(SHOW)
+	@echo "TMPLIBPATH = "$(TMPLIBPATH)
+	@echo "TMPSYSPATH = "$(TMPSYSPATH)
+	@echo "ADDLIBPATH = "$(ADDLIBPATH)
+	@echo "ADDSYSPATH = "$(ADDSYSPATH)
+	@echo $$LD_LIBRARY_PATH
+	@echo $$PATH
+	export TEST="TESTING"
+
+testoff: $(SHOW)
+	@echo "TMPLIBPATH = "$(TMPLIBPATH)
+	@echo "TMPSYSPATH = "$(TMPSYSPATH)
+	@echo "TSTLIBPATH = "$(TSTLIBPATH)
+	@echo "TSTSYSPATH = "$(TSTSYSPATH)
 	
