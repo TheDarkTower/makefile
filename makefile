@@ -68,7 +68,7 @@ SRCSTAT := $(wildcard $(LIBDIR)*.a*)
 # Resulting LIBSHAR and LIBSTAT are appended to LDLIBS
 # Any .so or .a will automatically be added to LDLIBS by default
 
-# TESTING ONLY - remove # to overide wildcard pulls and test LIBSHAR & LIBSTAT values
+# TESTING ONLY - remove # to override wildcard pulls and test LIBSHAR & LIBSTAT values
 #SRCSHAR := $(LIBDIR)libmysharedlib1.so.1.0.1 $(LIBDIR)libmysharedlib2.so.1.0.2
 #SRCSTAT := $(LIBDIR)libmystaticlib1.a.1.0.1 $(LIBDIR)libmystaticlib2.a.1.0.2
 
@@ -113,11 +113,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), debug)
@@ -129,11 +129,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), release)
@@ -145,11 +145,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-overide CPPFLAGS += $(RCPPFLAGS)
-overide CXXFLAGS += $(RCXXFLAGS)
-overide CFLAGS += $(RCFLAGS)
-overide LDFLAGS += $(RLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+override CPPFLAGS += $(RCPPFLAGS)
+override CXXFLAGS += $(RCXXFLAGS)
+override CFLAGS += $(RCFLAGS)
+override LDFLAGS += $(RLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), dfull)
@@ -161,11 +161,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), rfull)
@@ -177,11 +177,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-overide CPPFLAGS += $(RCPPFLAGS)
-overide CXXFLAGS += $(RCXXFLAGS)
-overide CFLAGS += $(RCFLAGS)
-overide LDFLAGS += $(RLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+override CPPFLAGS += $(RCPPFLAGS)
+override CXXFLAGS += $(RCXXFLAGS)
+override CFLAGS += $(RCFLAGS)
+override LDFLAGS += $(RLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), shared)
@@ -193,11 +193,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += -fPIC $(DCXXFLAGS)
-overide CFLAGS += -fPIC $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += -fPIC $(DCXXFLAGS)
+override CFLAGS += -fPIC $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -213,11 +213,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += -fPIC $(DCXXFLAGS)
-overide CFLAGS += -fPIC $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += -fPIC $(DCXXFLAGS)
+override CFLAGS += -fPIC $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -233,11 +233,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-overide CPPFLAGS += $(RCPPFLAGS)
-overide CXXFLAGS += -fPIC $(RCXXFLAGS)
-overide CFLAGS += -fPIC $(RCFLAGS)
-overide LDFLAGS += $(RLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+override CPPFLAGS += $(RCPPFLAGS)
+override CXXFLAGS += -fPIC $(RCXXFLAGS)
+override CFLAGS += -fPIC $(RCFLAGS)
+override LDFLAGS += $(RLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -253,11 +253,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += -fPIC $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += -fPIC $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -273,11 +273,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -293,11 +293,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-overide CPPFLAGS += $(RCPPFLAGS)
-overide CXXFLAGS += $(RCXXFLAGS)
-overide CFLAGS += $(RCFLAGS)
-overide LDFLAGS += $(RLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+override CPPFLAGS += $(RCPPFLAGS)
+override CXXFLAGS += $(RCXXFLAGS)
+override CFLAGS += $(RCFLAGS)
+override LDFLAGS += $(RLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -322,11 +322,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 # Determine if DEFAULT BUILD (no target passed to make) excluding whitespaces
@@ -342,11 +342,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-overide CPPFLAGS += $(DCPPFLAGS)
-overide CXXFLAGS += $(DCXXFLAGS)
-overide CFLAGS += $(DCFLAGS)
-overide LDFLAGS += $(DLDFLAGS)
-overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+override CPPFLAGS += $(DCPPFLAGS)
+override CXXFLAGS += $(DCXXFLAGS)
+override CFLAGS += $(DCFLAGS)
+override LDFLAGS += $(DLDFLAGS)
+override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 THISBUILD := all
 else
 DEFAULTBLD = false
