@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.5
+# Version: 3.0.6
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -98,6 +98,8 @@ LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$temp
 LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
+else
+THISBUILD := $(MAKECMDGOALS)
 endif
 
 # Set directories and flags based on MAKECMDGOALS
@@ -111,11 +113,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), debug)
@@ -127,11 +129,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), release)
@@ -143,11 +145,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += $(RCXXFLAGS)
-CFLAGS += $(RCFLAGS)
-LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+overide CPPFLAGS += $(RCPPFLAGS)
+overide CXXFLAGS += $(RCXXFLAGS)
+overide CFLAGS += $(RCFLAGS)
+overide LDFLAGS += $(RLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), dfull)
@@ -159,11 +161,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), rfull)
@@ -175,11 +177,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += $(RCXXFLAGS)
-CFLAGS += $(RCFLAGS)
-LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+overide CPPFLAGS += $(RCPPFLAGS)
+overide CXXFLAGS += $(RCXXFLAGS)
+overide CFLAGS += $(RCFLAGS)
+overide LDFLAGS += $(RLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 ifeq ($(MAKECMDGOALS), shared)
@@ -191,11 +193,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += -fPIC $(DCXXFLAGS)
-CFLAGS += -fPIC $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += -fPIC $(DCXXFLAGS)
+overide CFLAGS += -fPIC $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -211,11 +213,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += -fPIC $(DCXXFLAGS)
-CFLAGS += -fPIC $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += -fPIC $(DCXXFLAGS)
+overide CFLAGS += -fPIC $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -231,11 +233,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += -fPIC $(RCXXFLAGS)
-CFLAGS += -fPIC $(RCFLAGS)
-LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+overide CPPFLAGS += $(RCPPFLAGS)
+overide CXXFLAGS += -fPIC $(RCXXFLAGS)
+overide CFLAGS += -fPIC $(RCFLAGS)
+overide LDFLAGS += $(RLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -251,11 +253,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += -fPIC $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += -fPIC $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -271,11 +273,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -291,11 +293,11 @@ OBJDIR = $(BINDIR)release/obj/
 DEPDIR = $(BINDIR)release/dep/
 ASMDIR = $(BINDIR)release/asm/
 CPPDIR = $(BINDIR)release/cpp/
-CPPFLAGS += $(RCPPFLAGS)
-CXXFLAGS += $(RCXXFLAGS)
-CFLAGS += $(RCFLAGS)
-LDFLAGS += $(RLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
+overide CPPFLAGS += $(RCPPFLAGS)
+overide CXXFLAGS += $(RCXXFLAGS)
+overide CFLAGS += $(RCFLAGS)
+overide LDFLAGS += $(RLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
 TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
 SRCCCC := $(TMPCCC)
@@ -311,6 +313,7 @@ endif
 # Load typical environment for show
 
 ifeq ($(MAKECMDGOALS), show)
+THISBUILD := $(MAKECMDGOALS)
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -319,11 +322,11 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 # Determine if DEFAULT BUILD (no target passed to make) excluding whitespaces
@@ -339,12 +342,12 @@ OBJDIR = $(BINDIR)debug/obj/
 DEPDIR = $(BINDIR)debug/dep/
 ASMDIR = $(BINDIR)debug/asm/
 CPPDIR = $(BINDIR)debug/cpp/
-CPPFLAGS += $(DCPPFLAGS)
-CXXFLAGS += $(DCXXFLAGS)
-CFLAGS += $(DCFLAGS)
-LDFLAGS += $(DLDFLAGS)
-LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-MAKECMDGOALS = all
+overide CPPFLAGS += $(DCPPFLAGS)
+overide CXXFLAGS += $(DCXXFLAGS)
+overide CFLAGS += $(DCFLAGS)
+overide LDFLAGS += $(DLDFLAGS)
+overide LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
+THISBUILD := all
 else
 DEFAULTBLD = false
 endif
@@ -410,67 +413,67 @@ OBJS := $(OBJCCC) $(OBJCPP)
 # Define .PHONY Targets and Dependencies
 
 all : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "all Done - all/DEFAULT DEBUG!"
 
 debug : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "debug Done!"
 
 release : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "release Done!"
 
 dfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dfull Done!"
 
 rfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rfull Done!"
 
 shared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "shared Done!"
 
 dshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dshared Done!"
 
 rshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rshared Done!"
 
 static : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "static Done!"
 
 dstatic : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "dstatic Done!"
 
 rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(MAKECMDGOALS) > $(LOGDIR)lastbuild.log
+	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "rstatic Done!"
@@ -594,6 +597,7 @@ show:
 	@echo "INSTALL_SYM = "$(INSTALL_SYM)
 	@echo "INSTALL_STA = "$(INSTALL_STA)
 	@echo "PLATFORM = "$(PLATFORM)
+	@echo "THISBUILD = "$(THISBUILD)
 	@echo "LASTBUILD = "$(LASTBUILD)
 	@echo "LASTTPATH = "$(LASTTPATH)
 	@echo "LASTTARGET = "$(LASTTARGET)
