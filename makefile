@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.6
+# Version: 3.0.7
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -40,6 +40,7 @@ LIBS =
 
 # ld -shared, Wl,-soname=, cc -fPIC, AND ar rcsv added for shared/static targets
 # the below flags are appended to any flags passed at the command line
+# Common sqlite3 CPP flags: -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_COLUMN_METADATA
 
 RCPPFLAGS =
 DCPPFLAGS =
