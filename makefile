@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.3
+# Version: 3.0.5
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -354,7 +354,8 @@ endif
 ifeq ($(MAKECMDGOALS), install)
 INSTALL_MS := @echo "Nothing to install..."
 INSTALL_CP := @echo "No files to copy..."
-INSTALL_LN := @echo "No symlinks to create..."
+INSTALL_L1 := @echo "No major symlinks to create..."
+INSTALL_L2 := @echo "No basename symlinks to create..."
 # Check for BIN
 ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
 INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
@@ -364,7 +365,8 @@ endif
 ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
 INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
 INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
-INSTALL_LN := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
+INSTALL_L1 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
+INSTALL_L2 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(basename $(LASTSONAME))
 endif
 # Check for STA
 ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
@@ -387,8 +389,8 @@ endif
 
 # Use patsubst to setup build .c/.cpp, .d/.dpp, .s/.spp, and i/.ipp source strings
 
-OBJS := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
-OBJS += $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
+OBJCCC := $(patsubst $(SRCDIR)%.c, $(OBJDIR)%.o, $(SRCCCC))
+OBJCPP := $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)%.opp, $(SRCCPP))
 
 SRCDDD := $(patsubst $(SRCDIR)%.c, $(DEPDIR)%.d, $(SRCCCC))
 SRCDPP := $(patsubst $(SRCDIR)%.cpp, $(DEPDIR)%.dpp, $(SRCCPP))
@@ -399,8 +401,10 @@ SRCSPP := $(patsubst $(SRCDIR)%.cpp, $(ASMDIR)%.spp, $(SRCCPP))
 SRCICC := $(patsubst $(SRCDIR)%.c, $(CPPDIR)%.i, $(SRCCCC))
 SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 
+OBJS := $(OBJCCC) $(OBJCPP)
 
-######################### BEGIN RECIPES #########################
+
+######################### BEGIN TARGET DEFINITIONS #########################
 
 
 # Define .PHONY Targets and Dependencies
@@ -550,6 +554,8 @@ show:
 	@echo "LOGDIR = "$(LOGDIR)
 	@echo "LIBS   = "$(LIBS)
 	@echo "OBJS   = "$(OBJS)
+	@echo "OBJCCC = "$(OBJCCC)
+	@echo "OBJCPP = "$(OBJCPP)
 	@echo "CCC    = "$(CCC)
 	@echo "CC     = "$(CC)
 	@echo "CXX    = "$(CXX)
@@ -576,7 +582,7 @@ show:
 	@echo "LIBSTAT  = "$(LIBSTAT)
 	@echo "LIBSHAR  = "$(LIBSHAR)
 	@echo "SHOW = "$(SHOW)
-	@echo "=====================  TEST VARIABLS/FUNCTIONS ====================="
+	@echo "=====================  TEST VARIABLES/FUNCTIONS ====================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
 	@echo "words SRCDIR =  "$(words $(wildcard $(SRCDIR)*.c))
 	@echo "words CPPFLAGS = "$(words $(CPPFLAGS))
@@ -604,8 +610,8 @@ clean: $(SHOW)
 	$(RM) $(BINDIR)release/asm/*.s $(BINDIR)release/asm/*.spp
 	$(RM) $(BINDIR)debug/cpp/*.i $(BINDIR)debug/cpp/*.ipp
 	$(RM) $(BINDIR)release/cpp/*.i $(BINDIR)release/cpp/*.ipp
-	$(RM) $(BINDIR)debug/$(TARGET)$(TAREXT) $(BINDIR)debug/*.so* $(BINDIR)debug/*.a*
-	$(RM) $(BINDIR)release/$(TARGET)$(TAREXT) $(BINDIR)release/*.so* $(BINDIR)release/*.a*
+	$(RM) $(BINDIR)debug/$(TARGET) $(BINDIR)debug/$(TARGET).* $(BINDIR)debug/*.so* $(BINDIR)debug/*.a*
+	$(RM) $(BINDIR)release/$(TARGET) $(BINDIR)release/$(TARGET).* $(BINDIR)release/*.so* $(BINDIR)release/*.a*
 	$(RM) $(LOGDIR)*
 
 mkdirs: $(SHOW)
@@ -629,7 +635,8 @@ mkdirs: $(SHOW)
 install: $(SHOW)
 	$(INSTALL_MS)
 	$(INSTALL_CP)
-	$(INSTALL_LN)
+	$(INSTALL_L1)
+	$(INSTALL_L2)
 	@echo "Install Complete!"
 	ls -lah $(INSTALL_BIN)
 	ls -lah $(INSTALL_SHA)
