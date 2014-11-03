@@ -1,6 +1,6 @@
 # Dynamic makefile for GNU gcc/g++/c/c++
 # Author:  Kenneth Cascio
-# Version: 3.0.7
+# Version: 3.1.0
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -31,7 +31,7 @@ INSTALL_SYM = $(HOME)/bin/TESTBED/lib/
 INSTALL_STA = $(HOME)/bin/TESTBED/lib/
 
 # Un-comment to RUN 'make show' with all targets for debugging variables
-#SHOW = show
+SHOW = show
 
 # Designate Project Specific Libraries here.
 # Common:  -lpthread -ldl
@@ -55,6 +55,17 @@ DLDLIBS = $(LIBS)
 
 
 ############################# DO NOT EDIT BELOW THIS LINE ###############################
+
+FALSE := 0
+TRUE := 1
+
+######################### BEGIN FUNCTION DEFINITIONS #########################
+
+fnPREP = _$(1)_
+fnTEST = $(findstring _$(1)_, $(patsubst %, _%_, $(2)))
+fnTEST_ = $(words $(findstring _$(1)_, $(patsubst %, _%_, $(2))))
+
+######################### END FUNCTION DEFINITIONS #########################
 
 
 # Load *.c, *.cpp, *.so, and *.a files for processing via make wildcard function
@@ -80,32 +91,51 @@ SRCTEMP := $(basename $(basename $(basename $(basename $(SRCSTAT)))))
 LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 
 # DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build logic
+# Any target with 'full' in the name will add additional dependencies for .i/.ii .s/.spp
 
-DEFBINS = all debug release dfull rfull
-DEFSHAR = shared dshared rshared
-DEFSTAT = static dstatic rstatic
-DEFCMDS = show clean mkdirs install
-DEFBLDS = $(DEFBINS) $(DEFSHAR) $(DEFSTAT)
+DEFBINS_D := all debug debug_full dfull
+DEFSHAR_D := shared dshared shared_full dshared_full
+DEFSTAT_D := static dstatic static_full dstatic_full
+DEFBINS_R := release release_full rfull
+DEFSHAR_R := rshared rshared_full
+DEFSTAT_R := rstatic rstatic_full
+DEFCMDS := show clean mkdirs install
+DEFBLDS := $(DEFBINS_D) $(DEFSHAR_D) $(DEFSTAT_D) $(DEFBINS_R) $(DEFSHAR_R) $(DEFSTAT_R)
+
+#DEFCMDS_T := $(patsubst %, _%_, $(DEFCMDS))
+#DEFBLDS_T := $(patsubst %, _%_, $(DEFBLDS))
 
 # Define .PHONY targets
 
 .PHONY : $(DEFBLDS)
 .PHONY : $(DEFCMDS)
 
+#### set MAKECMDGOALS_ (default = 'all)
+
+ifeq (0, $(words $(MAKECMDGOALS)))
+DEFAULTBLD := true
+override MAKECMDGOALS_ := all
+else
+DEFAULTBLD := false
+override MAKECMDGOALS_ := $(MAKECMDGOALS)
+endif
+
 # Load log files if command target only
 
-ifeq ($(MAKECMDGOALS), $(findstring $(MAKECMDGOALS), $(DEFCMDS)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFCMDS)))
 LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
 LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
+THISBUILD := $(MAKECMDGOALS_)
 else
-THISBUILD := $(MAKECMDGOALS)
+THISBUILD := $(MAKECMDGOALS_)
 endif
 
-# Set directories and flags based on MAKECMDGOALS
+##########  START: Set directories and flags based on MAKECMDGOALS_  ##########
 
-ifeq ($(MAKECMDGOALS), all)
+# DEFBIN_D
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_D)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -121,23 +151,8 @@ override LDFLAGS += $(DLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
-ifeq ($(MAKECMDGOALS), debug)
-LDTARGET = $(TARGET:=$(TAREXT))
-LDSONAME =
-LDLSNAME = $(LDTARGET)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-override CPPFLAGS += $(DCPPFLAGS)
-override CXXFLAGS += $(DCXXFLAGS)
-override CFLAGS += $(DCFLAGS)
-override LDFLAGS += $(DLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-endif
-
-ifeq ($(MAKECMDGOALS), release)
+# DEFBIN_R
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_R)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -153,39 +168,8 @@ override LDFLAGS += $(RLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
-ifeq ($(MAKECMDGOALS), dfull)
-LDTARGET = $(TARGET:=$(TAREXT))
-LDSONAME =
-LDLSNAME = $(LDTARGET)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-override CPPFLAGS += $(DCPPFLAGS)
-override CXXFLAGS += $(DCXXFLAGS)
-override CFLAGS += $(DCFLAGS)
-override LDFLAGS += $(DLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-endif
-
-ifeq ($(MAKECMDGOALS), rfull)
-LDTARGET = $(TARGET:=$(TAREXT))
-LDSONAME =
-LDLSNAME = $(LDTARGET)
-TARDIR = $(BINDIR)release/
-OBJDIR = $(BINDIR)release/obj/
-DEPDIR = $(BINDIR)release/dep/
-ASMDIR = $(BINDIR)release/asm/
-CPPDIR = $(BINDIR)release/cpp/
-override CPPFLAGS += $(RCPPFLAGS)
-override CXXFLAGS += $(RCXXFLAGS)
-override CFLAGS += $(RCFLAGS)
-override LDFLAGS += $(RLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
-endif
-
-ifeq ($(MAKECMDGOALS), shared)
+# DEFSHA_D
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_D)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -205,27 +189,8 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-ifeq ($(MAKECMDGOALS), dshared)
-LDTARGET = lib$(TARGET:=.so)
-LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
-LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-override CPPFLAGS += $(DCPPFLAGS)
-override CXXFLAGS += -fPIC $(DCXXFLAGS)
-override CFLAGS += -fPIC $(DCFLAGS)
-override LDFLAGS += $(DLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
-TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
-SRCCCC := $(TMPCCC)
-SRCCPP := $(TMPCPP)
-endif
-
-ifeq ($(MAKECMDGOALS), rshared)
+# DEFSHA_R
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_R)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -245,7 +210,8 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-ifeq ($(MAKECMDGOALS), static)
+# DEFSTA_D
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAS_D)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -265,27 +231,8 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-ifeq ($(MAKECMDGOALS), dstatic)
-LDTARGET = lib$(TARGET:=.a)
-LDSONAME =
-LDLSNAME = $(LDTARGET)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-override CPPFLAGS += $(DCPPFLAGS)
-override CXXFLAGS += $(DCXXFLAGS)
-override CFLAGS += $(DCFLAGS)
-override LDFLAGS += $(DLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-TMPCCC := $(patsubst $(SRCDIR)main.c, , $(SRCCCC))
-TMPCPP := $(patsubst $(SRCDIR)main.cpp, , $(SRCCPP))
-SRCCCC := $(TMPCCC)
-SRCCPP := $(TMPCPP)
-endif
-
-ifeq ($(MAKECMDGOALS), rstatic)
+# DEFSTA_R
+ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_R)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -305,16 +252,21 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-ifeq ($(MAKECMDGOALS), clean)
+##########  END: Set directories and flags based on MAKECMDGOALS_  ##########
+
+# Setup CLEAN variables
+
+ifeq ($(MAKECMDGOALS_), clean)
 LDTARGET = $(TARGET:=.*)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
 endif
 
-# Load typical environment for show
 
-ifeq ($(MAKECMDGOALS), show)
-THISBUILD := $(MAKECMDGOALS)
+# Setup SHOW variables
+
+ifeq ($(MAKECMDGOALS_), show)
+THISBUILD := $(MAKECMDGOALS_)
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -330,32 +282,10 @@ override LDFLAGS += $(DLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
-# Determine if DEFAULT BUILD (no target passed to make) excluding whitespaces
-# Set to DEBUG defaults (copied from 'debug')
-
-ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFBLDS) $(DEFCMDS))),)
-DEFAULTBLD = true
-LDTARGET = $(TARGET:=$(TAREXT))
-LDSONAME =
-LDLSNAME = $(LDTARGET)
-TARDIR = $(BINDIR)debug/
-OBJDIR = $(BINDIR)debug/obj/
-DEPDIR = $(BINDIR)debug/dep/
-ASMDIR = $(BINDIR)debug/asm/
-CPPDIR = $(BINDIR)debug/cpp/
-override CPPFLAGS += $(DCPPFLAGS)
-override CXXFLAGS += $(DCXXFLAGS)
-override CFLAGS += $(DCFLAGS)
-override LDFLAGS += $(DLDFLAGS)
-override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
-THISBUILD := all
-else
-DEFAULTBLD = false
-endif
 
 # Setup INSTALL environment based on log files
 
-ifeq ($(MAKECMDGOALS), install)
+ifeq ($(MAKECMDGOALS_), install)
 INSTALL_MS := @echo "Nothing to install..."
 INSTALL_CP := @echo "No files to copy..."
 INSTALL_L1 := @echo "No major symlinks to create..."
@@ -379,6 +309,7 @@ INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
 endif
 endif
 
+
 # TARGET CC/LD Control for .c, .cpp, and mixed projects; default .cpp if SRCCPP != ""
 
 ifneq (0, $(words $(SRCCPP)))
@@ -390,6 +321,7 @@ SRCEXT := .c
 CCC = $(CC)
 CCCFLAGS = $(CPPFLAGS) $(CFLAGS)
 endif
+
 
 # Use patsubst to setup build .c/.cpp, .d/.dpp, .s/.spp, and i/.ipp source strings
 
@@ -408,85 +340,65 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 OBJS := $(OBJCCC) $(OBJCPP)
 
 
+# Setup FULL build additional dependencies if necessary
+
+ifeq (full, $(findstring full, $(MAKECMDGOALS_)))
+ADDFULL := $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
+else
+ADDFULL :=
+endif
+
+
 ######################### BEGIN TARGET DEFINITIONS #########################
 
 
 # Define .PHONY Targets and Dependencies
 
-all : $(SHOW) $(TARDIR)$(LDTARGET)
+$(DEFBINS_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "all Done - all/DEFAULT DEBUG!"
+	@echo "All Done - DEFBINS_D/$(MAKECMDGOALS_)"
 
-debug : $(SHOW) $(TARDIR)$(LDTARGET)
+$(DEFBINS_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "debug Done!"
+	@echo "All Done - DEFBINS_R/$(MAKECMDGOALS_)"
 
-release : $(SHOW) $(TARDIR)$(LDTARGET)
+$(DEFSHAR_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "release Done!"
+	@echo "All Done - DEFSHAR_D/$(MAKECMDGOALS_)"
 
-dfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+$(DEFSHAR_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "dfull Done!"
+	@echo "All Done - DEFSHAR_R/$(MAKECMDGOALS_)"
 
-rfull : $(SHOW) $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP) $(TARDIR)$(LDTARGET)
+$(DEFSTAT_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "rfull Done!"
+	@echo "All Done - DEFSTAT_D/$(MAKECMDGOALS_)"
 
-shared : $(SHOW) $(TARDIR)$(LDTARGET)
+$(DEFSTAT_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "shared Done!"
-
-dshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
-	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
-	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "dshared Done!"
-
-rshared : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
-	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
-	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "rshared Done!"
-
-static : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
-	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
-	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "static Done!"
-
-dstatic : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
-	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
-	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "dstatic Done!"
-
-rstatic : $(SHOW) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
-	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
-	@echo $(LDSONAME) > $(LOGDIR)soname.log
-	@echo "rstatic Done!"
+	@echo "All Done - DEFSTAT_R/$(MAKECMDGOALS_)"
 
 
-# Include .d and .dpp makefile dependencies when MAKECMDGOALS != DEFCMDS
+# Include .d and .dpp makefile dependencies when MAKECMDGOALS_ != DEFCMDS
 
-ifeq ($(strip $(findstring $(MAKECMDGOALS), $(DEFCMDS))),)
+
+###### FIX 'all' in 'install' bug  ###############################################
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBLDS)))
 include $(SRCDDD)
 include $(SRCDPP)
 endif
-
 
 # Specific target dependencies & recipes: .exe, .so, .a, .o, .opp, .s, spp, .i, .ipp, .d, .dpp
 
@@ -546,7 +458,19 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
 
 show:
 	@echo "**************************  BEGIN SHOW  **************************"
-	@echo "MAKECMDGOALS = "$(MAKECMDGOALS)
+	@echo "MAKECMDGOALS  = "$(MAKECMDGOALS)
+	@echo "words         = "$(words $(MAKECMDGOALS))
+	@echo "MAKECMDGOALS_ = "$(MAKECMDGOALS_)
+	@echo "test to       = "$(findstring $(MAKECMDGOALS_), $(DEFCMDS))
+	@echo "DEFBINS_D = "$(DEFBINS_D)
+	@echo "DEFBINS_R = "$(DEFBINS_R)
+	@echo "DEFSHAR_D = "$(DEFSHAR_D)
+	@echo "DEFSTAT_D = "$(DEFSTAT_D)
+	@echo "DEFSTAT_R = "$(DEFSTAT_R)
+	@echo "DEFCMDS = "$(DEFCMDS)
+	@echo "DEFBLDS = "$(DEFBLDS)
+	@echo "DEFCMDS_T = "$(DEFCMDS_T)
+	@echo "DEFBLDS_T = "$(DEFBLDS_T)
 	@echo "SRCCCC = "$(SRCCCC)
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "TARDIR = "$(TARDIR)
@@ -585,6 +509,7 @@ show:
 	@echo "SRCSTAT  = "$(SRCSTAT)
 	@echo "LIBSTAT  = "$(LIBSTAT)
 	@echo "LIBSHAR  = "$(LIBSHAR)
+	@echo "ADDFULL = "$(ADDFULL)
 	@echo "SHOW = "$(SHOW)
 	@echo "=====================  TEST VARIABLES/FUNCTIONS ====================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
@@ -604,6 +529,13 @@ show:
 	@echo "LASTTARGET = "$(LASTTARGET)
 	@echo "LASTSONAME = "$(LASTSONAME)
 	@echo "HOME = "$(HOME)
+	@echo "call fnPREP = "$(call fnPREP,$(MAKECMDGOALS_))
+	@echo "call fnTEST = "$(call fnTEST,$(MAKECMDGOALS_),$(DEFCMDS))
+	@echo "call fnTEST_ = "$(call fnTEST_,$(MAKECMDGOALS_),$(DEFCMDS))
+	@echo "TRUE = "$(TRUE)
+	@echo "FALSE = "$(FALSE)
+	@echo "MAKECMDGOALS_ = "$(MAKECMDGOALS_)
+	@echo "DEFCMDS       = "$(DEFCMDS)
 	@echo "============================  END SHOW  ============================"
 
 clean: $(SHOW)
