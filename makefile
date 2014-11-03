@@ -62,8 +62,8 @@ TRUE := 1
 ######################### BEGIN FUNCTION DEFINITIONS #########################
 
 fnPREP = _$(1)_
-fnTEST = $(findstring _$(1)_, $(patsubst %, _%_, $(2)))
-fnTEST_ = $(words $(findstring _$(1)_, $(patsubst %, _%_, $(2))))
+fnTEST = $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2)))
+fnTEST_ = $(words $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2))))
 
 ######################### END FUNCTION DEFINITIONS #########################
 
