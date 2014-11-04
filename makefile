@@ -1,11 +1,11 @@
 #-------------------------------------------------------------
 # Project.......: makefile
 # Author........: Kenneth Cascio
-# Version.......: 3.1.1
+# Version.......: 3.1.2
 # Project Repo..: http://github.com/TheDarkTower/makefile
 #-------------------------------------------------------------
 
-VERSION := 3.1.1
+VERSION := 3.1.2
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -107,9 +107,6 @@ DEFSTAT_R := rstatic rstatic_full
 DEFCMDS := show clean mkdirs install version
 DEFBLDS := $(DEFBINS_D) $(DEFSHAR_D) $(DEFSTAT_D) $(DEFBINS_R) $(DEFSHAR_R) $(DEFSTAT_R)
 
-#DEFCMDS_T := $(patsubst %, _%_, $(DEFCMDS))
-#DEFBLDS_T := $(patsubst %, _%_, $(DEFBLDS))
-
 # Define .PHONY targets
 
 .PHONY : $(DEFBLDS)
@@ -139,8 +136,9 @@ endif
 
 ##########  START: Set directories and flags based on MAKECMDGOALS_  ##########
 
-# DEFBIN_D
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_D)))
+# DEFBINS_D
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_D)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBINS_D)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -156,8 +154,9 @@ override LDFLAGS += $(DLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
-# DEFBIN_R
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_R)))
+# DEFBINS_R
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_R)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBINS_R)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -173,8 +172,9 @@ override LDFLAGS += $(RLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
-# DEFSHA_D
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_D)))
+# DEFSHAR_D
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_D)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSHAR_D)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -194,8 +194,9 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-# DEFSHA_R
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_R)))
+# DEFSHAR_R
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_R)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSHAR_R)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -215,8 +216,9 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-# DEFSTA_D
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAS_D)))
+# DEFSTAT_D
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_D)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSTAT_D)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -236,8 +238,9 @@ SRCCCC := $(TMPCCC)
 SRCCPP := $(TMPCPP)
 endif
 
-# DEFSTA_R
-ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_R)))
+# DEFSTAT_R
+#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_R)))
+ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSTAT_R)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
