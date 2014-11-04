@@ -1,11 +1,11 @@
 #-------------------------------------------------------------
 # Project.......: makefile
 # Author........: Kenneth Cascio
-# Version.......: 3.1.2
+# Version.......: 3.1.3
 # Project Repo..: http://github.com/TheDarkTower/makefile
 #-------------------------------------------------------------
 
-VERSION := 3.1.2
+VERSION := 3.1.3
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -38,14 +38,16 @@ INSTALL_STA = $(HOME)/bin/TESTBED/lib/
 # Un-comment to RUN 'make show' with all targets for debugging variables
 SHOW = show
 
-# Designate Project Specific Libraries here.
+# Designate Project Specific Libraries here.  Appended to LDFLAGS.
 # Common:  -lpthread -ldl
 
 LIBS =
 
-# ld -shared, Wl,-soname=, cc -fPIC, AND ar rcsv added for shared/static targets
+# ld -shared, Wl,-soname=, cc -fPIC, AND ar rcsv are automatically added for shared/static targets
 # the below flags are appended to any flags passed at the command line
 # Common sqlite3 CPP flags: -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_COLUMN_METADATA
+# 'R' = RELEASE; 'D' = DEBUG
+# Set CPPFLAGS, CXXFLAGS, CFLAGS, LDFLAGS, and LDLIBS for Debug & Release builds.
 
 RCPPFLAGS =
 DCPPFLAGS =
@@ -74,7 +76,6 @@ fnTEST_ = $(words $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2))))
 
 
 # Load *.c, *.cpp, *.so, and *.a files for processing via make wildcard function
-
 SRCCCC := $(wildcard $(SRCDIR)*.c)
 SRCCPP := $(wildcard $(SRCDIR)*.cpp)
 SRCSHAR := $(wildcard $(LIBDIR)*.so*)
@@ -112,8 +113,7 @@ DEFBLDS := $(DEFBINS_D) $(DEFSHAR_D) $(DEFSTAT_D) $(DEFBINS_R) $(DEFSHAR_R) $(DE
 .PHONY : $(DEFBLDS)
 .PHONY : $(DEFCMDS)
 
-#### set MAKECMDGOALS_ (default = 'all)
-
+#### set MAKECMDGOALS_ (default = 'all) ####
 ifeq (0, $(words $(MAKECMDGOALS)))
 DEFAULTBLD := true
 override MAKECMDGOALS_ := all
@@ -123,15 +123,11 @@ override MAKECMDGOALS_ := $(MAKECMDGOALS)
 endif
 
 # Load log files if command target only
-
 ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFCMDS)))
 LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
 LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTSONAME := $(strip $(shell tempvar=$$(cat $(LOGDIR)soname.log); echo $$tempvar))
-THISBUILD := $(MAKECMDGOALS_)
-else
-THISBUILD := $(MAKECMDGOALS_)
 endif
 
 ##########  START: Set directories and flags based on MAKECMDGOALS_  ##########
@@ -270,11 +266,9 @@ LDSONAME =
 LDLSNAME = $(LDTARGET)
 endif
 
-
-# Setup SHOW variables
+# Setup SHOW variables for testing.
 
 ifeq ($(MAKECMDGOALS_), show)
-THISBUILD := $(MAKECMDGOALS_)
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -290,7 +284,6 @@ override LDFLAGS += $(DLDFLAGS)
 override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
-
 # Setup INSTALL environment based on log files
 
 ifeq ($(MAKECMDGOALS_), install)
@@ -299,19 +292,22 @@ INSTALL_CP := @echo "No files to copy..."
 INSTALL_L1 := @echo "No major symlinks to create..."
 INSTALL_L2 := @echo "No basename symlinks to create..."
 # Check for BIN
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
+#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
+ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFBINS)))
 INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
 INSTALL_CP := cp $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
 endif
 # Check for SHA
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
+#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
+ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFSHAR)))
 INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
 INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
 INSTALL_L1 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
 INSTALL_L2 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(basename $(LASTSONAME))
 endif
 # Check for STA
-ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
+#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
+ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFSTAT)))
 INSTALL_MS := @echo "Installing static library: $(LASTTARGET)"
 INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
 endif
@@ -363,50 +359,48 @@ endif
 # Define .PHONY Targets and Dependencies
 
 $(DEFBINS_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFBINS_D/$(MAKECMDGOALS_)"
 
 $(DEFBINS_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFBINS_R/$(MAKECMDGOALS_)"
 
 $(DEFSHAR_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFSHAR_D/$(MAKECMDGOALS_)"
 
 $(DEFSHAR_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFSHAR_R/$(MAKECMDGOALS_)"
 
 $(DEFSTAT_D) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFSTAT_D/$(MAKECMDGOALS_)"
 
 $(DEFSTAT_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
-	@echo $(THISBUILD) > $(LOGDIR)lastbuild.log
+	@echo $(MAKECMDGOALS_) > $(LOGDIR)lastbuild.log
 	@echo $(TARDIR)$(LDLSNAME) > $(LOGDIR)target.log
 	@echo $(LDSONAME) > $(LOGDIR)soname.log
 	@echo "All Done - DEFSTAT_R/$(MAKECMDGOALS_)"
 
 
 # Include .d and .dpp makefile dependencies when MAKECMDGOALS_ != DEFCMDS
-
-
-###### FIX 'all' in 'install' bug  ###############################################
 ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBLDS)))
 include $(SRCDDD)
 include $(SRCDPP)
 endif
+
 
 # Specific target dependencies & recipes: .exe, .so, .a, .o, .opp, .s, spp, .i, .ipp, .d, .dpp
 
@@ -463,7 +457,6 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
          sed 's,\($*\)\.o[ :]*,\1.opp $@ : ,g' < $@.$$$$ > $@; \
          $(RM) $@.$$$$
 
-
 show:
 	@echo "**************************  BEGIN SHOW  **************************"
 	@echo "VERSION = "$(VERSION)
@@ -516,7 +509,7 @@ show:
 	@echo "SRCSTAT  = "$(SRCSTAT)
 	@echo "LIBSTAT  = "$(LIBSTAT)
 	@echo "LIBSHAR  = "$(LIBSHAR)
-	@echo "ADDFULL = "$(ADDFULL)
+	@echo "ADDFULL  = "$(ADDFULL)
 	@echo "SHOW = "$(SHOW)
 	@echo "=====================  TEST VARIABLES/FUNCTIONS ====================="
 	@echo "wildcard SRCDIR = "$(wildcard $(SRCDIR)*.c)
@@ -529,7 +522,6 @@ show:
 	@echo "INSTALL_SHA = "$(INSTALL_SHA)
 	@echo "INSTALL_SYM = "$(INSTALL_SYM)
 	@echo "INSTALL_STA = "$(INSTALL_STA)
-	@echo "THISBUILD = "$(THISBUILD)
 	@echo "***LASTBUILD  = "$(LASTBUILD)
 	@echo "***LASTTPATH  = "$(LASTTPATH)
 	@echo "***LASTTARGET = "$(LASTTARGET)
