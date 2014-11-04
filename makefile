@@ -1,6 +1,11 @@
-# Dynamic makefile for GNU gcc/g++/c/c++
-# Author:  Kenneth Cascio
-# Version: 3.1.0
+#-------------------------------------------------------------
+# Project.......: makefile
+# Author........: Kenneth Cascio
+# Version.......: 3.1.1
+# Project Repo..: http://github.com/TheDarkTower/makefile
+#-------------------------------------------------------------
+
+VERSION := 3.1.1
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -61,7 +66,7 @@ TRUE := 1
 
 ######################### BEGIN FUNCTION DEFINITIONS #########################
 
-fnPREP = _$(1)_
+fnPREP = \#$(1)\#
 fnTEST = $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2)))
 fnTEST_ = $(words $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2))))
 
@@ -99,7 +104,7 @@ DEFSTAT_D := static dstatic static_full dstatic_full
 DEFBINS_R := release release_full rfull
 DEFSHAR_R := rshared rshared_full
 DEFSTAT_R := rstatic rstatic_full
-DEFCMDS := show clean mkdirs install
+DEFCMDS := show clean mkdirs install version
 DEFBLDS := $(DEFBINS_D) $(DEFSHAR_D) $(DEFSTAT_D) $(DEFBINS_R) $(DEFSHAR_R) $(DEFSTAT_R)
 
 #DEFCMDS_T := $(patsubst %, _%_, $(DEFCMDS))
@@ -458,6 +463,7 @@ $(DEPDIR)%.dpp : $(SRCDIR)%.cpp
 
 show:
 	@echo "**************************  BEGIN SHOW  **************************"
+	@echo "VERSION = "$(VERSION)
 	@echo "MAKECMDGOALS  = "$(MAKECMDGOALS)
 	@echo "words         = "$(words $(MAKECMDGOALS))
 	@echo "MAKECMDGOALS_ = "$(MAKECMDGOALS_)
@@ -469,8 +475,6 @@ show:
 	@echo "DEFSTAT_R = "$(DEFSTAT_R)
 	@echo "DEFCMDS = "$(DEFCMDS)
 	@echo "DEFBLDS = "$(DEFBLDS)
-	@echo "DEFCMDS_T = "$(DEFCMDS_T)
-	@echo "DEFBLDS_T = "$(DEFBLDS_T)
 	@echo "SRCCCC = "$(SRCCCC)
 	@echo "SRCCPP = "$(SRCCPP)
 	@echo "TARDIR = "$(TARDIR)
@@ -522,12 +526,11 @@ show:
 	@echo "INSTALL_SHA = "$(INSTALL_SHA)
 	@echo "INSTALL_SYM = "$(INSTALL_SYM)
 	@echo "INSTALL_STA = "$(INSTALL_STA)
-	@echo "PLATFORM = "$(PLATFORM)
 	@echo "THISBUILD = "$(THISBUILD)
-	@echo "LASTBUILD = "$(LASTBUILD)
-	@echo "LASTTPATH = "$(LASTTPATH)
-	@echo "LASTTARGET = "$(LASTTARGET)
-	@echo "LASTSONAME = "$(LASTSONAME)
+	@echo "***LASTBUILD  = "$(LASTBUILD)
+	@echo "***LASTTPATH  = "$(LASTTPATH)
+	@echo "***LASTTARGET = "$(LASTTARGET)
+	@echo "***LASTSONAME = "$(LASTSONAME)
 	@echo "HOME = "$(HOME)
 	@echo "call fnPREP = "$(call fnPREP,$(MAKECMDGOALS_))
 	@echo "call fnTEST = "$(call fnTEST,$(MAKECMDGOALS_),$(DEFCMDS))
@@ -577,4 +580,14 @@ install: $(SHOW)
 	@echo "Install Complete!"
 	ls -lah $(INSTALL_BIN)
 	ls -lah $(INSTALL_SHA)
+
+version: $(SHOW)
+	@echo
+	@echo "-------------------------------------------------------------"
+	@echo "Project.......: makefile"
+	@echo "Author........: Kenneth Cascio"
+	@echo "Version.......: "$(VERSION)
+	@echo "Project Repo..: http://github.com/TheDarkTower/makefile"
+	@echo "-------------------------------------------------------------"
+	@echo
 	
