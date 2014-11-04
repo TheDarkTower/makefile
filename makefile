@@ -1,11 +1,11 @@
 #-------------------------------------------------------------
 # Project.......: makefile
 # Author........: Kenneth Cascio
-# Version.......: 3.1.3
+# Version.......: 3.1.4
 # Project Repo..: http://github.com/TheDarkTower/makefile
 #-------------------------------------------------------------
 
-VERSION := 3.1.3
+VERSION := 3.1.4
 
 # Set SHELL to use other than default /bin/sh
 #SHELL = /bin/bash
@@ -36,7 +36,7 @@ INSTALL_SYM = $(HOME)/bin/TESTBED/lib/
 INSTALL_STA = $(HOME)/bin/TESTBED/lib/
 
 # Un-comment to RUN 'make show' with all targets for debugging variables
-SHOW = show
+#SHOW = show
 
 # Designate Project Specific Libraries here.  Appended to LDFLAGS.
 # Common:  -lpthread -ldl
@@ -70,7 +70,8 @@ TRUE := 1
 
 fnPREP = \#$(1)\#
 fnTEST = $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2)))
-fnTEST_ = $(words $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2))))
+fnUNIQUE = $(words $(findstring \#$(1)\#, $(patsubst %, \#%\#, $(2))))
+fnALL = $(words $(findstring _all, $(patsubst %, \_%, $(1))))
 
 ######################### END FUNCTION DEFINITIONS #########################
 
@@ -96,17 +97,20 @@ LIBSHAR := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 SRCTEMP := $(basename $(basename $(basename $(basename $(SRCSTAT)))))
 LIBSTAT := $(patsubst $(LIBDIR)lib%, -l%, $(SRCTEMP))
 
-# DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build logic
-# Any target with 'full' in the name will add additional dependencies for .i/.ii .s/.spp
+# DEFINED BUILDS & DEFINED COMMANDS for expansion in .PHONY & build/instal logic
+# Any target with '_all' in the name will add additional dependencies for .i/.ii .s/.spp
 
-DEFBINS_D := all debug debug_full dfull
-DEFSHAR_D := shared dshared shared_full dshared_full
-DEFSTAT_D := static dstatic static_full dstatic_full
-DEFBINS_R := release release_full rfull
-DEFSHAR_R := rshared rshared_full
-DEFSTAT_R := rstatic rstatic_full
-DEFCMDS := show clean mkdirs install version
-DEFBLDS := $(DEFBINS_D) $(DEFSHAR_D) $(DEFSTAT_D) $(DEFBINS_R) $(DEFSHAR_R) $(DEFSTAT_R)
+DEFBINS_D := all debug debug_all
+DEFSHAR_D := shared dshared shared_all dshared_all
+DEFSTAT_D := static dstatic static_all dstatic_all
+DEFBINS_R := release release_all
+DEFSHAR_R := rshared rshared_all
+DEFSTAT_R := rstatic rstatic_all
+DEFCMDS := show clean mkdirs install uninstall version
+DEFBINS := $(DEFBINS_D) $(DEFBINS_R)
+DEFSHAR := $(DEFSHAR_D) $(DEFSHAR_R)
+DEFSTAT := $(DEFSTAT_D) $(DEFSTAT_R)
+DEFBLDS := $(DEFBINS) $(DEFSHAR) $(DEFSTAT)
 
 # Define .PHONY targets
 
@@ -123,7 +127,7 @@ override MAKECMDGOALS_ := $(MAKECMDGOALS)
 endif
 
 # Load log files if command target only
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFCMDS)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFCMDS)))
 LASTBUILD := $(strip $(shell tempvar=$$(cat $(LOGDIR)lastbuild.log); echo $$tempvar))
 LASTTPATH := $(dir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
 LASTTARGET := $(notdir $(strip $(shell tempvar=$$(cat $(LOGDIR)target.log); echo $$tempvar)))
@@ -133,8 +137,7 @@ endif
 ##########  START: Set directories and flags based on MAKECMDGOALS_  ##########
 
 # DEFBINS_D
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_D)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBINS_D)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFBINS_D)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -151,8 +154,7 @@ override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(DLDLIBS)
 endif
 
 # DEFBINS_R
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFBINS_R)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBINS_R)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFBINS_R)))
 LDTARGET = $(TARGET:=$(TAREXT))
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -169,8 +171,7 @@ override LDLIBS += $(SRCSTAT) $(SRCSHAR) $(RLDLIBS)
 endif
 
 # DEFSHAR_D
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_D)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSHAR_D)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFSHAR_D)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -191,8 +192,7 @@ SRCCPP := $(TMPCPP)
 endif
 
 # DEFSHAR_R
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSHAR_R)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSHAR_R)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFSHAR_R)))
 LDTARGET = lib$(TARGET:=.so)
 LDSONAME = lib$(TARGET:=.so)$(SOMAJ)
 LDLSNAME = lib$(TARGET:=.so)$(SOMAJ)$(SOMIN)$(SOREL)
@@ -213,8 +213,7 @@ SRCCPP := $(TMPCPP)
 endif
 
 # DEFSTAT_D
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_D)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSTAT_D)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFSTAT_D)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -235,8 +234,7 @@ SRCCPP := $(TMPCPP)
 endif
 
 # DEFSTAT_R
-#ifeq ($(MAKECMDGOALS_), $(findstring $(MAKECMDGOALS_), $(DEFSTAT_R)))
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFSTAT_R)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFSTAT_R)))
 LDTARGET = lib$(TARGET:=.a)
 LDSONAME =
 LDLSNAME = $(LDTARGET)
@@ -287,29 +285,52 @@ endif
 # Setup INSTALL environment based on log files
 
 ifeq ($(MAKECMDGOALS_), install)
-INSTALL_MS := @echo "Nothing to install..."
-INSTALL_CP := @echo "No files to copy..."
-INSTALL_L1 := @echo "No major symlinks to create..."
-INSTALL_L2 := @echo "No basename symlinks to create..."
+INSTALL_MSG0 := @echo "Nothing to install..."
+INSTALL_CPT0 := @echo "No files to copy..."
+INSTALL_LNL1 := @echo "No major symlinks to create..."
+INSTALL_LNL2 := @echo "No basename symlinks to create..."
 # Check for BIN
-#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFBINS)))
-ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFBINS)))
-INSTALL_MS := @echo "Installing binary: $(LASTTARGET)"
-INSTALL_CP := cp $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFBINS)))
+INSTALL_MSG0 := @echo "Installing binary: $(LASTTARGET)"
+INSTALL_CPT0 := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_BIN)$(LASTTARGET)
 endif
 # Check for SHA
-#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSHAR)))
-ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFSHAR)))
-INSTALL_MS := @echo "Installing shared library: $(LASTTARGET)"
-INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
-INSTALL_L1 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
-INSTALL_L2 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(basename $(LASTSONAME))
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFSHAR)))
+INSTALL_MSG0 := @echo "Installing shared library: $(LASTTARGET)"
+INSTALL_CPT0 := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_SHA)$(LASTTARGET)
+INSTALL_LNL1 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(LASTSONAME)
+INSTALL_LNL2 := ln -fs $(INSTALL_SHA)$(LASTTARGET) $(INSTALL_SYM)$(basename $(LASTSONAME))
 endif
 # Check for STA
-#ifeq ($(LASTBUILD), $(findstring $(LASTBUILD), $(DEFSTAT)))
-ifeq ($(TRUE), $(call fnTEST_,$(LASTBUILD),$(DEFSTAT)))
-INSTALL_MS := @echo "Installing static library: $(LASTTARGET)"
-INSTALL_CP := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFSTAT)))
+INSTALL_MSG0 := @echo "Installing static library: $(LASTTARGET)"
+INSTALL_CPT0 := cp -f $(LASTTPATH)$(LASTTARGET) $(INSTALL_STA)$(LASTTARGET)
+endif
+endif
+
+# Setup UN-INSTALL environment based on log files
+
+ifeq ($(MAKECMDGOALS_), uninstall)
+INSTALL_MSG0 := @echo "Nothing to uninstall..."
+INSTALL_RMT0 := @echo "No files to remove..."
+INSTALL_RML1 := @echo "No major symlinks to remove..."
+INSTALL_RML2 := @echo "No basename symlinks to remove..."
+# Check for BIN
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFBINS)))
+INSTALL_MSG0 := @echo "Un-installing BINARY: $(LASTTARGET)"
+INSTALL_RMT0 := $(RM) $(INSTALL_BIN)$(LASTTARGET)
+endif
+# Check for SHA
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFSHAR)))
+INSTALL_MSG0 := @echo "Un-installing SHARED library: $(LASTTARGET)"
+INSTALL_RMT0 := $(RM) $(INSTALL_SHA)$(LASTTARGET)
+INSTALL_RML1 := $(RM) $(INSTALL_SYM)$(LASTSONAME)
+INSTALL_RML2 := $(RM) $(INSTALL_SYM)$(basename $(LASTSONAME))
+endif
+# Check for STA
+ifeq ($(TRUE), $(call fnUNIQUE,$(LASTBUILD),$(DEFSTAT)))
+INSTALL_MSG0 := @echo "Un-installing STATIC library: $(LASTTARGET)"
+INSTALL_RMT0 := $(RM) $(INSTALL_STA)$(LASTTARGET)
 endif
 endif
 
@@ -344,9 +365,9 @@ SRCIPP := $(patsubst $(SRCDIR)%.cpp, $(CPPDIR)%.ipp, $(SRCCPP))
 OBJS := $(OBJCCC) $(OBJCPP)
 
 
-# Setup FULL build additional dependencies if necessary
+# Setup FULL build additional dependencies if all or goal includes _all
 
-ifeq (full, $(findstring full, $(MAKECMDGOALS_)))
+ifeq ($(TRUE), $(call fnALL,$(MAKECMDGOALS_)))
 ADDFULL := $(SRCSCC) $(SRCSPP) $(SRCICC) $(SRCIPP)
 else
 ADDFULL :=
@@ -396,7 +417,7 @@ $(DEFSTAT_R) : $(SHOW) $(ADDFULL) $(TARDIR)$(LDTARGET)
 
 
 # Include .d and .dpp makefile dependencies when MAKECMDGOALS_ != DEFCMDS
-ifeq ($(TRUE), $(call fnTEST_,$(MAKECMDGOALS_),$(DEFBLDS)))
+ifeq ($(TRUE), $(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFBLDS)))
 include $(SRCDDD)
 include $(SRCDPP)
 endif
@@ -467,9 +488,13 @@ show:
 	@echo "DEFBINS_D = "$(DEFBINS_D)
 	@echo "DEFBINS_R = "$(DEFBINS_R)
 	@echo "DEFSHAR_D = "$(DEFSHAR_D)
+	@echo "DEFSHAR_R = "$(DEFSHAR_R)
 	@echo "DEFSTAT_D = "$(DEFSTAT_D)
 	@echo "DEFSTAT_R = "$(DEFSTAT_R)
 	@echo "DEFCMDS = "$(DEFCMDS)
+	@echo "DEFBINS = "$(DEFBINS)
+	@echo "DEFSHAR = "$(DEFSHAR)
+	@echo "DEFSTAT = "$(DEFSTAT)
 	@echo "DEFBLDS = "$(DEFBLDS)
 	@echo "SRCCCC = "$(SRCCCC)
 	@echo "SRCCPP = "$(SRCCPP)
@@ -529,11 +554,12 @@ show:
 	@echo "HOME = "$(HOME)
 	@echo "call fnPREP = "$(call fnPREP,$(MAKECMDGOALS_))
 	@echo "call fnTEST = "$(call fnTEST,$(MAKECMDGOALS_),$(DEFCMDS))
-	@echo "call fnTEST_ = "$(call fnTEST_,$(MAKECMDGOALS_),$(DEFCMDS))
+	@echo "call fnUNIQUE = "$(call fnUNIQUE,$(MAKECMDGOALS_),$(DEFCMDS))
 	@echo "TRUE = "$(TRUE)
 	@echo "FALSE = "$(FALSE)
 	@echo "MAKECMDGOALS_ = "$(MAKECMDGOALS_)
 	@echo "DEFCMDS       = "$(DEFCMDS)
+	@echo "fnALL = "$(call fnALL,$(MAKECMDGOALS_))
 	@echo "============================  END SHOW  ============================"
 
 clean: $(SHOW)
@@ -568,11 +594,20 @@ mkdirs: $(SHOW)
 	mkdir -p $(INSTALL_STA)
 
 install: $(SHOW)
-	$(INSTALL_MS)
-	$(INSTALL_CP)
-	$(INSTALL_L1)
-	$(INSTALL_L2)
+	$(INSTALL_MSG0)
+	$(INSTALL_CPT0)
+	$(INSTALL_LNL1)
+	$(INSTALL_LNL2)
 	@echo "Install Complete!"
+	ls -lah $(INSTALL_BIN)
+	ls -lah $(INSTALL_SHA)
+
+uninstall: $(SHOW)
+	$(INSTALL_MSG0)
+	$(INSTALL_RMT0)
+	$(INSTALL_RML1)
+	$(INSTALL_RML2)
+	@echo "Un-install Complete!"
 	ls -lah $(INSTALL_BIN)
 	ls -lah $(INSTALL_SHA)
 
